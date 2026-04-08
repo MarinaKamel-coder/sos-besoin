@@ -1,0 +1,79 @@
+@startuml
+left to right direction
+
+actor Client
+actor Prestataire
+actor Admin
+actor "Clerk" as Clerk <<system>>
+actor "Stripe" as Stripe <<system>>
+
+rectangle "SOS-BESOIN" {
+
+  usecase "S'authentifier" as UCAuth
+  usecase "Gérer profil" as UCProfile
+
+  usecase "Publier une demande" as UCPublish
+  usecase "Consulter demandes" as UCBrowseReq
+  usecase "Consulter détail demande" as UCViewReq
+
+  usecase "Soumettre une offre" as UCOffer
+  usecase "Consulter offres reçues" as UCViewOffers
+  usecase "Consulter détail offre" as UCViewOfferDetail
+
+  usecase "Accepter une offre" as UCAccept
+  usecase "Calculer total\n(montant + commission)" as UCCalc
+  usecase "Effectuer paiement" as UCPay
+  usecase "Créer réservation/contrat" as UCBooking
+
+  usecase "Annuler une demande" as UCCancelReq
+  usecase "Signaler une demande/offre" as UCReport
+
+  usecase "Gérer catégories" as UCCategories
+  usecase "Modérer demandes/offres" as UCModerate
+  usecase "Consulter paiements" as UCPayments
+}
+
+' --- Auth ---
+Client --> UCAuth
+Prestataire --> UCAuth
+Admin --> UCAuth
+Clerk --> UCAuth
+
+' --- Profil ---
+Client --> UCProfile
+Prestataire --> UCProfile
+
+' --- Demandes (client) ---
+Client --> UCPublish
+Client --> UCBrowseReq
+Client --> UCViewReq
+Client --> UCViewOffers
+Client --> UCAccept
+Client --> UCCancelReq
+
+' --- Demandes (prestataire) ---
+Prestataire --> UCBrowseReq
+Prestataire --> UCViewReq
+Prestataire --> UCOffer
+
+' --- Offres (détails) ---
+Client --> UCViewOfferDetail
+Prestataire --> UCViewOfferDetail
+
+' --- Admin ---
+Admin --> UCCategories
+Admin --> UCModerate
+Admin --> UCPayments
+
+' --- include (obligatoire) ---
+UCAccept ..> UCCalc : <<include>>
+UCAccept ..> UCBooking : <<include>>
+UCAccept ..> UCPay : <<include>>
+Stripe --> UCPay
+
+' --- extend (optionnel) ---
+' "Signaler" est optionnel pendant la consultation des détails
+UCReport ..> UCViewReq : <<extend>>
+UCReport ..> UCViewOfferDetail : <<extend>>
+
+@enduml

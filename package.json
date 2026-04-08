@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset --force",
+    "test:tx": "ts-node --compiler-options {\"module\":\"CommonJS\"} src/lib/test-transactions.ts",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.11",
@@ -27,6 +31,7 @@
     "eslint-config-next": "16.2.2",
     "prisma": "^7.7.0",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }
