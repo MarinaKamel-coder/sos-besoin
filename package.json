@@ -7,10 +7,12 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force",
-    "test:tx": "ts-node --compiler-options {\"module\":\"CommonJS\"} src/lib/test-transactions.ts",
+    
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "seed": "npx tsx prisma/seed.ts",
+    "test:tx": "npx tsx src/lib/test-transactions.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.11",
@@ -33,5 +35,8 @@
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   }
 }
