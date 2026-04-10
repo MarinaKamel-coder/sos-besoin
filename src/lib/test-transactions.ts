@@ -1,4 +1,4 @@
-import { prisma } from "./prisma";
+import prisma from "./prisma";
 import { acceptOfferAndCreateBooking } from "./transactions";
 
 async function testTransactions() {

@@ -1,4 +1,4 @@
-import { prisma } from "./prisma";
+import prisma from "./prisma";
 
 const PLATFORM_FEE_BPS = 1000; // 10%
 
