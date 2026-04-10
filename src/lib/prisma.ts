@@ -1,6 +1,6 @@
-import { PrismaClient } from "../generated/prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
-import dotenv from "dotenv"
+import { PrismaClient } from "../generated/prisma/client";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -9,7 +9,7 @@ const adapter = new PrismaNeon({
 });
 const prisma = new PrismaClient({
   adapter,
-  log: ['query', 'info', 'warn', 'error'],
+  log: ["query", "info", "warn", "error"],
 });
 
 export default prisma;
