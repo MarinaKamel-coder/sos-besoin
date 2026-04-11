@@ -119,7 +119,15 @@ npm run test:tx
 
 ## Auteurs / Équipe
 
-- À compléter (noms des membres + rôles/contributions)
+-Equipe SuperMoms :
+Marina Kamel: creation de la structure du projet et du shema prisma
+              installation des dependance Clerk .
+Asma Ajroudi: creation de transaction.ts
+Sonia Corbin: creation de test-transaction.ts 
+              documentation et backlog/user-stories
+Sonia Mhimdi: creation de seed.ts et du README
+
+
 
 ---
 
