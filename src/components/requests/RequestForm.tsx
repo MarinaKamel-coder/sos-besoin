@@ -1,146 +1,153 @@
 "use client";
 
 import { useActionState } from "react";
-import { createRequestAction, updateRequestAction } from "../../action/requestActions";
-import { ActionState } from "../../shemas/request";
+import { createRequestAction, updateRequestAction, } from "../../action/requestActions";
+import { RequestUpdateInput, RequestCreateInput, ActionState } from "../../schemas/request";
 
 interface RequestFormProps {
-  request?: any; // Les données existantes en cas de modification
-  categories: { id: string; name: string }[]; // Liste pour le menu déroulant
+  initialData?: Partial<RequestUpdateInput>; 
 }
 
-export default function RequestForm({ request, categories }: RequestFormProps) {
-  const isEdit = !!request;
-  
-  // 1. Sélection de l'action appropriée
-  const formAction = isEdit ? updateRequestAction : createRequestAction;
+type FormState = ActionState<RequestCreateInput> | ActionState<RequestUpdateInput>;
 
-  // 2. État initial du formulaire
-  const initialState: ActionState<any> = {
-    success: false,
-    message: "",
+export default function RequestForm({ initialData }: RequestFormProps) {
+  const isEdit = !!initialData?.id;
+
+  // 2. Utilisez une fonction wrapper pour unifier les signatures
+  const actionWrapper = async (prevState: any, formData: FormData): Promise<FormState> => {
+    if (isEdit) {
+      return updateRequestAction(prevState, formData);
+    }
+    return createRequestAction(prevState, formData);
   };
 
-  // 3. Hook pour lier le formulaire à la Server Action
-  const [state, action, isPending] = useActionState(formAction, initialState);
+  // 3. Passez le wrapper à useActionState
+  const [state, formAction, isPending] = useActionState(actionWrapper, {
+    success: false,
+    message: "",
+  });
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-6">
-        {isEdit ? "Modifier ma demande" : "Publier un nouveau besoin"}
-      </h2>
+    <form 
+      action={formAction} 
+      className="max-w-2xl mx-auto p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl space-y-6 text-white"
+    >
+      <div className="border-b border-slate-800 pb-4 mb-6">
+        <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
+          {isEdit ? "Modifier la demande" : "Nouveau besoin"}
+        </h2>
+        <p className="text-slate-400 mt-1">
+          {isEdit 
+            ? "Mettez à jour les informations de votre demande de service." 
+            : "Décrivez votre besoin pour recevoir des offres de nos prestataires."}
+        </p>
+      </div>
 
-      <form action={action} className="space-y-4">
-        {/* Champs cachés pour l'ID et le Verrou Optimiste (Édition uniquement) */}
-        {isEdit && (
-          <>
-            <input type="hidden" name="id" value={request.id} />
-            <input type="hidden" name="version" value={request.version} />
-          </>
-        )}
+      {/* Champs cachés cruciaux pour l'Update (Verrouillage Optimiste) */}
+      {isEdit && (
+        <>
+          <input type="hidden" name="id" value={initialData.id} />
+          <input type="hidden" name="version" value={initialData.version} />
+        </>
+      )}
 
-        {/* TITRE */}
-        <div>
-          <label className="block text-sm font-semibold mb-1">Titre</label>
+      {/* Titre du service */}
+      <div className="space-y-2">
+        <label htmlFor="title" className="block text-sm font-semibold text-slate-300">Titre</label>
+        <input
+          id="title"
+          name="title"
+          type="text"
+          defaultValue={initialData?.title}
+          placeholder="Ex: Réparation plomberie cuisine"
+          className={`w-full p-3 bg-slate-800 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all ${
+            state.errors?.title ? "border-red-500 shadow-sm shadow-red-500/20" : "border-slate-700"
+          }`}
+        />
+        {state.errors?.title && <p className="text-red-400 text-xs italic">{state.errors.title[0]}</p>}
+      </div>
+
+      {/* Description détaillée */}
+      <div className="space-y-2">
+        <label htmlFor="description" className="block text-sm font-semibold text-slate-300">Description</label>
+        <textarea
+          id="description"
+          name="description"
+          rows={5}
+          defaultValue={initialData?.description}
+          placeholder="Détaillez votre besoin ici..."
+          className={`w-full p-3 bg-slate-800 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all ${
+            state.errors?.description ? "border-red-500 shadow-sm shadow-red-500/20" : "border-slate-700"
+          }`}
+        ></textarea>
+        {state.errors?.description && <p className="text-red-400 text-xs italic">{state.errors.description[0]}</p>}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Date du besoin */}
+        <div className="space-y-2">
+          <label htmlFor="neededAt" className="block text-sm font-semibold text-slate-300">Date souhaitée</label>
           <input
-            name="title"
-            defaultValue={request?.title}
-            placeholder="Ex: Besoin d'aide pour mon déménagement"
-            className={`w-full p-2 border rounded ${state.errors?.title ? "border-red-500" : "border-gray-300"}`}
-          />
-          {state.errors?.title && (
-            <p className="text-red-500 text-xs mt-1">{state.errors.title[0]}</p>
-          )}
-        </div>
-
-        {/* DESCRIPTION */}
-        <div>
-          <label className="block text-sm font-semibold mb-1">Description</label>
-          <textarea
-            name="description"
-            defaultValue={request?.description}
-            rows={4}
-            placeholder="Détaillez votre besoin ici..."
-            className={`w-full p-2 border rounded ${state.errors?.description ? "border-red-500" : "border-gray-300"}`}
-          />
-          {state.errors?.description && (
-            <p className="text-red-500 text-xs mt-1">{state.errors.description[0]}</p>
-          )}
-        </div>
-
-        {/* DATE DU BESOIN (Coercion Zod) */}
-        <div>
-          <label className="block text-sm font-semibold mb-1">Date souhaitée</label>
-          <input
+            id="neededAt"
             name="neededAt"
-            type="datetime-local"
-            aria-label="neededAt"
-            defaultValue={request?.neededAt ? new Date(request.neededAt).toISOString().slice(0, 16) : ""}
-            className={`w-full p-2 border rounded ${state.errors?.neededAt ? "border-red-500" : "border-gray-300"}`}
+            type="date"
+            defaultValue={initialData?.neededAt ? new Date(initialData.neededAt).toISOString().split('T')[0] : ""}
+            className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
           />
-          {state.errors?.neededAt && (
-            <p className="text-red-500 text-xs mt-1">{state.errors.neededAt[0]}</p>
-          )}
+          {state.errors?.neededAt && <p className="text-red-400 text-xs italic">{state.errors.neededAt[0]}</p>}
         </div>
 
-        {/* LOCALISATION (Optionnel selon ton Zod) */}
-        <div>
-          <label className="block text-sm font-semibold mb-1">Lieu (Ville ou Quartier)</label>
+        {/* Localisation */}
+        <div className="space-y-2">
+          <label htmlFor="location" className="block text-sm font-semibold text-slate-300">Lieu (Ville)</label>
           <input
+            id="location"
             name="location"
-            aria-label="location"
-            defaultValue={request?.location}
-            className="w-full p-2 border rounded border-gray-300"
+            type="text"
+            defaultValue={initialData?.location || ""}
+            placeholder="Ex: Longueuil"
+            className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
           />
-          {state.errors?.location && (
-            <p className="text-red-500 text-xs mt-1">{state.errors.location[0]}</p>
-          )}
+          {state.errors?.location && <p className="text-red-400 text-xs italic">{state.errors.location[0]}</p>}
         </div>
+      </div>
 
-        {/* CATÉGORIE (N-N relation) */}
-        {!isEdit && (
-          <div>
-            <label className="block text-sm font-semibold mb-1">Catégorie de service</label>
-            <select
-              name="categoryId"
-              aria-label="categoryId"
-              className={`w-full p-2 border rounded ${state.errors?.categoryId ? "border-red-500" : "border-gray-300"}`}
-            >
-              <option value="">-- Choisir une catégorie --</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            {state.errors?.categoryId && (
-              <p className="text-red-500 text-xs mt-1">{state.errors.categoryId[0]}</p>
-            )}
-          </div>
-        )}
-
-        {/* ALERTES DE STATUT (Succès / Erreur globale / Conflit) */}
-        {state.message && (
-          <div className={`p-4 rounded-md text-sm ${state.success ? "bg-green-50 text-green-800 border border-green-200" : "bg-red-50 text-red-800 border border-red-200"}`}>
-            {state.message}
-          </div>
-        )}
-
-        {/* BOUTON DE SOUMISSION */}
+      {/* Bouton de soumission */}
+      <div className="pt-6">
         <button
           type="submit"
           disabled={isPending}
-          className="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 transition disabled:bg-gray-400"
+          className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all active:scale-95 ${
+            isPending 
+              ? "bg-slate-700 cursor-wait text-slate-400" 
+              : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-blue-500/20"
+          }`}
         >
           {isPending ? (
-            <span className="flex items-center justify-center">
-              Traitement en cours...
+            <span className="flex items-center justify-center gap-2">
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Enregistrement...
             </span>
           ) : (
-            isEdit ? "Enregistrer les modifications" : "Publier ma demande"
+            isEdit ? "Mettre à jour la demande" : "Publier ma demande"
           )}
         </button>
-      </form>
-    </div>
+      </div>
+
+      {/* Retour d'information (Succès ou Erreur globale) */}
+      {state.message && (
+        <div className={`mt-4 p-4 rounded-xl border flex items-center gap-3 animate-pulse-once ${
+          state.success 
+            ? "bg-green-500/10 border-green-500/50 text-green-400" 
+            : "bg-red-500/10 border-red-500/50 text-red-400"
+        }`}>
+          <span className="text-xl">{state.success ? "✓" : "⚠"}</span>
+          <p className="text-sm font-medium">{state.message}</p>
+        </div>
+      )}
+    </form>
   );
 }
