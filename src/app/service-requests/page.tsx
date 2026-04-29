@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getPaginatedServiceRequests, ServiceRequestSortField, SortOrder } from "@/src/lib/requetes/serviceRequests";
 import Pagination from "@/src/components/Pagination";
 import { RequestStatus } from "@/src/generated/prisma/client";
+import SearchBar from "@/src/components/SearchBar";
 
 // cette fonction sert a verifier que la valeur recue est bien en RequestStatus
 function parseStatus(value?: string): RequestStatus | undefined {
@@ -40,7 +41,8 @@ export default async function Page({
     return (
         <main className="p-6 max-w-5xl mx-auto">
           <h1 className="text-2xl font-bold mb-4">Demandes urgentes</h1>  
-       
+          <SearchBar placeholder="Rechercher une demande..." />
+          
           <p className="text-sm text-gray-600 mb-4">
             {meta.totalCount} resultat{meta.totalCount > 1 ? "s" : ""} - Page{" "}
             {meta.currentPage} sur {meta.totalPages}

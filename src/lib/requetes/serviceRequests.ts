@@ -159,6 +159,83 @@ export async function getServiceRequestStats() {
         raw: grouped,
     };
 }
+/**
+ * BONUS - Pagination par CURSEUR (cursor-based pagination)
+ *
+ * Au lieu de SKIP/TAKE (offset), on utilise un "curseur" = l'identifiant du
+ * dernier element de la page precedente. Prisma applique alors un WHERE
+ * (id <= cursor) au lieu d'un OFFSET, ce qui evite a Postgres de scanner et
+ * d'ignorer les N premieres lignes.
+ *
+ * Avantages:
+ *  - Performance constante meme sur des millions de lignes (pas de OFFSET).
+ *  - Pas de "duplication" si une ligne est inseree pendant la navigation.
+ *
+ * Inconvenients:
+ *  - Pas d'acces direct a une page N (uniquement suivante/precedente).
+ *  - Le curseur doit etre un champ unique et stable (ici: id cuid).
+ */
+export type GetCursorPaginatedServiceRequestsParams = {
+    cursor?: string;            // id de la derniere demande de la page precedente
+    take?: number;              // taille de page
+    q?: string;
+    status?: RequestStatus;
+};
+
+export async function getCursorPaginatedServiceRequests(
+    params: GetCursorPaginatedServiceRequestsParams
+) {
+    const take = params.take && params.take > 0 ? Math.min(params.take, 50) : ITEMS_PER_PAGE;
+    const q = (params.q ?? "").trim();
+
+    // where dynamique (memes filtres que l'offset, pour comparaison juste)
+    const where: Prisma.ServiceRequestWhereInput = {};
+    if (q) {
+        where.OR = [
+            { title: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+        ];
+    }
+    if (params.status) where.status = params.status;
+
+    // On prend (take + 1) pour savoir s'il existe une page suivante
+    const items = await prisma.serviceRequest.findMany({
+        where,
+        take: take + 1,
+        // skip:1 sert a NE PAS reinclure l'item designe par le cursor
+        ...(params.cursor
+            ? {
+                  cursor: { id: params.cursor },
+                  skip: 1,
+              }
+            : {}),
+        orderBy: [
+            { createdAt: "desc" },
+            { id: "desc" }, // tie-breaker stable
+        ],
+        include: {
+            client: true,
+            categories: { include: { category: true } },
+            _count: { select: { offers: true } },
+        },
+    });
+
+    const hasMore = items.length > take;
+    const pageItems = hasMore ? items.slice(0, take) : items;
+
+    const nextCursor = hasMore ? pageItems[pageItems.length - 1]?.id ?? null : null;
+
+    return {
+        items: pageItems,
+        meta: {
+            take,
+            nextCursor,
+            hasMore,
+            usedCursor: params.cursor ?? null,
+        },
+    };
+}
+
     /**
      * Agregation globale: stats du marketplace
      * Utilise aggregate() avec _count, _avg, _min, _max et _sum
