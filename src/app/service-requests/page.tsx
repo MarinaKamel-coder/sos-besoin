@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getPaginatedServiceRequests } from "@/src/lib/requetes/serviceRequests";
+import { getPaginatedServiceRequests, ServiceRequestSortField, SortOrder } from "@/src/lib/requetes/serviceRequests";
 import Pagination from "@/src/components/Pagination";
 import { RequestStatus } from "@/src/generated/prisma/client";
 
@@ -17,6 +17,8 @@ export default async function Page({
         page?: string;
         q?: string;
         status?: string;
+        sort?: string;
+        order?: string;
     }>;
 }) {
     const params = await searchParams;
@@ -24,11 +26,15 @@ export default async function Page({
     const page = Number(params.page ?? 1);
     const q = params.q;
     const status = parseStatus(params.status);
+    const sort = params.sort as ServiceRequestSortField | undefined;
+    const order = params.order as SortOrder | undefined;
 
     const { items, meta } = await getPaginatedServiceRequests({
         page, 
         q, 
-        status, 
+        status,
+        sort,
+        order,
     });
 
     return (
@@ -86,7 +92,7 @@ export default async function Page({
               currentPage={meta.currentPage}
               totalPages={meta.totalPages}
               basePath="/service-requests"
-              extraParams={{ q, status }}
+              extraParams={{ q, status, sort, order }}
             />
         </main>
     );    
