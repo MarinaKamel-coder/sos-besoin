@@ -56,6 +56,7 @@ model User {
   requests     ServiceRequest[] @relation("ClientRequests")
   offers       Offer[]          @relation("ProviderOffers")
   adminActions AdminAction[]
+  cart         Cart?
 
   @@index([clerkId])
   @@index([role])
@@ -138,7 +139,8 @@ model Offer {
   providerId String
   provider   User @relation("ProviderOffers", fields: [providerId], references: [id])
 
-  booking Booking?
+  booking   Booking?
+  cartItems CartItem[]
 
   @@unique([requestId, providerId])
   @@index([requestId, status])
@@ -184,4 +186,39 @@ model AdminAction {
   createdAt DateTime @default(now())
 
   @@index([adminId])
+}
+
+
+
+
+// ─── Panier de propositions (équivalent du panier d'achat pour une plateforme de services) ───
+
+
+model Cart {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  offerId   String
+  offer     Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  quantity  Int      @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, offerId])
+  @@index([cartId])
+  @@index([offerId])
 }
