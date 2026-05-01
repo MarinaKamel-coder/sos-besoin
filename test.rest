@@ -1,0 +1,88 @@
+@baseUrl = http://localhost:3000
+
+# Avant de lancer ces requetes:
+# 1. demarre l'app avec npm run dev
+# 2. execute npx prisma db seed si ta base est vide
+# 3. lance GET /api/service-requests pour recuperer des ids reels
+
+# Recopie ici des ids trouves dans les reponses JSON.
+@requestId = req1.id
+@clientId = client.id
+@categoryId = category.id
+@providerId = provider.id
+@offerId = offer.id
+@missingId = cm00000000000000000000000
+
+### 1) Capture liste des demandes - succes 200
+GET {{baseUrl}}/api/service-requests
+
+### 2) Capture detail d'une demande existante - succes 200
+GET {{baseUrl}}/api/service-requests/{{requestId}}
+
+### 3) Capture creation d'une demande - succes 201
+POST {{baseUrl}}/api/service-requests
+Content-Type: application/json
+
+{
+	"title": "SOS: aide urgente pour installation projecteur",
+	"description": "Besoin d'une personne pour installer et configurer un projecteur avant 18h ce soir.",
+	"neededAt": "2026-12-31T12:00:00.000Z",
+	"location": "Montreal",
+	"clientId": "{{clientId}}",
+	"categoryId": "{{categoryId}}"
+}
+
+### 4) Capture validation invalide - erreur 400
+POST {{baseUrl}}/api/service-requests
+Content-Type: application/json
+
+{
+	"title": "x",
+	"description": "court",
+	"neededAt": "date-invalide",
+	"clientId": "",
+	"categoryId": ""
+}
+
+### 5) Capture demande inexistante - erreur 404
+GET {{baseUrl}}/api/service-requests/{{missingId}}
+
+### 6) Capture mise a jour partielle d'une demande - succes 200
+PATCH {{baseUrl}}/api/service-requests/{{requestId}}
+Content-Type: application/json
+
+{
+	"title": "SOS: projecteur installe et test son/video",
+	"status": "OPEN"
+}
+
+### 7) Capture liste des offres d'une demande - succes 200
+GET {{baseUrl}}/api/service-requests/{{requestId}}/offers
+
+### 8) Capture creation d'une offre - succes 201
+POST {{baseUrl}}/api/service-requests/{{requestId}}/offers
+Content-Type: application/json
+
+{
+	"providerId": "{{providerId}}",
+	"price": 15000,
+	"message": "Disponible aujourd'hui. Je peux apporter les cables HDMI et faire les tests avant l'evenement."
+}
+
+### 9) Capture detail d'une offre - succes 200
+GET {{baseUrl}}/api/offers/{{offerId}}
+
+### 10) Capture changement de statut d'une offre - succes 200
+PATCH {{baseUrl}}/api/offers/{{offerId}}
+Content-Type: application/json
+
+{
+	"status": "REJECTED"
+}
+
+### 11) Capture offre inexistante - erreur 404
+GET {{baseUrl}}/api/offers/{{missingId}}
+
+### 12) Capture suppression impossible d'une demande deja reservee - erreur 400
+# Utilise ici une demande qui a deja un booking dans les donnees seed.
+DELETE {{baseUrl}}/api/service-requests/{{requestId}}
