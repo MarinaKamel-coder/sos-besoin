@@ -14,6 +14,8 @@ async function main() {
   // 1) Nettoyage (ordre inverse des dépendances)
   await prisma.payment.deleteMany();
   await prisma.booking.deleteMany();
+  await prisma.cartItem.deleteMany();
+  await prisma.cart.deleteMany();
   await prisma.offer.deleteMany();
   await prisma.requestCategory.deleteMany();
   await prisma.serviceRequest.deleteMany();
@@ -36,6 +38,18 @@ async function main() {
           phone: "514-000-0000",
         },
       },
+    },
+  });
+
+  // Compte réel de test — clerkId correspond à l'utilisateur connecté en dev
+  const realTestUser = await prisma.user.upsert({
+    where: { clerkId: "user_3D43kOjvSSHuy2f2IkSxTkB5woA" },
+    update: { role: Role.CLIENT },
+    create: {
+      clerkId: "user_3D43kOjvSSHuy2f2IkSxTkB5woA",
+      email: "test@sos-besoin.dev",
+      name: "Sonia (test)",
+      role: Role.CLIENT,
     },
   });
 
@@ -101,7 +115,73 @@ async function main() {
 
   // 4) Demandes (ServiceRequest) + catégories (N-N)
   const now = new Date();
-  const inDays = (d: number) => new Date(now.getTime() + d * 24 * 60 * 60 * 1000);
+  const inDays = (d: number) =>
+    new Date(now.getTime() + d * 24 * 60 * 60 * 1000);
+
+  const provider3 = await prisma.user.create({
+    data: {
+      clerkId: "clerk_provider_003",
+      email: "pro.demenagement@sos-besoin.test",
+      name: "Marco Déménagement",
+      role: Role.PROVIDER,
+      profile: {
+        create: {
+          bio: "Aide au déménagement depuis 8 ans. Spécialiste meubles lourds, escaliers étroits, emballage fragile. Camionnette disponible.",
+          city: "Montréal",
+          phone: "514-333-3333",
+        },
+      },
+    },
+  });
+
+  const provider4 = await prisma.user.create({
+    data: {
+      clerkId: "clerk_provider_004",
+      email: "pro.transport@sos-besoin.test",
+      name: "Léa Transport & Déménagement",
+      role: Role.PROVIDER,
+      profile: {
+        create: {
+          bio: "Équipe de 2 personnes disponible le weekend. Expérience appartements montréalais, démontage/remontage de meubles IKEA inclus.",
+          city: "Laval",
+          phone: "450-444-4444",
+        },
+      },
+    },
+  });
+
+  // Demande appartenant au compte réel de test (pour tester le panier)
+  const reqReal = await prisma.serviceRequest.create({
+    data: {
+      clientId: realTestUser.id,
+      title: "SOS: aide déménagement urgent ce weekend",
+      description:
+        "Besoin d'aide pour déménager quelques meubles lourds. Camion fourni, besoin de 2-3 bras.",
+      neededAt: inDays(3),
+      location: "Montréal (Villeray)",
+      categories: {
+        create: [{ categoryId: catBySlug["maison"].id }],
+      },
+    },
+  });
+
+  await prisma.offer.create({
+    data: {
+      requestId: reqReal.id,
+      providerId: provider3.id,
+      price: 9500, // 95.00$
+      message: "Disponible samedi dès 8h. Habitué aux déménagements Villeray/Rosemont, je connais bien les ruelles. Meubles lourds aucun problème.",
+    },
+  });
+
+  await prisma.offer.create({
+    data: {
+      requestId: reqReal.id,
+      providerId: provider4.id,
+      price: 11000, // 110.00$
+      message: "On peut venir à 2 ce weekend. Démontage/remontage inclus si nécessaire, on apporte le matériel d'emballage.",
+    },
+  });
 
   const req1 = await prisma.serviceRequest.create({
     data: {
@@ -112,7 +192,10 @@ async function main() {
       neededAt: inDays(2),
       location: "Montréal (Plateau)",
       categories: {
-        create: [{ categoryId: catBySlug["musique"].id }, { categoryId: catBySlug["evenementiel"].id }],
+        create: [
+          { categoryId: catBySlug["musique"].id },
+          { categoryId: catBySlug["evenementiel"].id },
+        ],
       },
     },
   });
@@ -140,7 +223,10 @@ async function main() {
       neededAt: inDays(3),
       location: "Montréal (Rosemont)",
       categories: {
-        create: [{ categoryId: catBySlug["tech"].id }, { categoryId: catBySlug["maison"].id }],
+        create: [
+          { categoryId: catBySlug["tech"].id },
+          { categoryId: catBySlug["maison"].id },
+        ],
       },
     },
   });
@@ -245,8 +331,9 @@ async function main() {
   console.log("✅ Seed terminé avec succès.");
   console.log({
     users: { admin: admin.email, client: client.email },
-    requests: [req1.title, req2.title, req3.title],
-    offers: [offer1.id, offer2.id, offer3.id, offer4.id, offer5.id].length,
+    providers: [provider1.email, provider2.email, provider3.email, provider4.email],
+    requests: [req1.title, req2.title, req3.title, reqReal.title],
+    offers: [offer1.id, offer2.id, offer3.id, offer4.id, offer5.id].length + 2,
   });
 }
 
