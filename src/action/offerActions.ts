@@ -15,19 +15,28 @@ export async function getOffersByRequestAction(requestId: string) {
 }
 
 export async function createOfferAction(prevState: any, formData: FormData) {
-    const { userId } = await auth();
+    const { userId: clerkId } = await auth();
+    if (!clerkId) return { success: false, message: "Non authentifie" };
+
     const validated = offerCreateSchema.safeParse(Object.fromEntries(formData.entries()));
-    
     if (!validated.success) return { success: false, errors: validated.error.flatten().fieldErrors };
+
+    // Recuperer l'utilisateur interne depuis le clerkId
+    const user = await prisma.user.findUnique({ where: { clerkId } });
+    if (!user) return { success: false, message: "Utilisateur introuvable" };
 
     try {
         await prisma.offer.create({
-            data: { ...validated.data, providerId: userId! }
+            data: { ...validated.data, providerId: user.id }
         });
-        revalidatePath(`/requests/${validated.data.requestId}`);
-        return { success: true, message: "Offre envoyée !" };
-    } catch (e) {
-        return { success: false, message: "Vous avez déjà fait une offre pour ce service." };
+        revalidatePath(`/service-requests/${validated.data.requestId}`);
+        return { success: true, message: "Offre envoyee !" };
+    } catch (e: any) {
+        // Erreur de contrainte unique (deja fait une offre)
+        if (e?.code === "P2002") {
+            return { success: false, message: "Vous avez deja fait une offre pour cette demande." };
+        }
+        return { success: false, message: "Erreur lors de la creation de l'offre." };
     }
 }
 
