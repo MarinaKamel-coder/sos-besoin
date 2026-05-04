@@ -14,7 +14,7 @@ export async function getOffersByRequestAction(requestId: string) {
   });
 }
 
-export async function createOfferAction(prevState: any, formData: FormData) {
+export async function createOfferAction(prevState: unknown, formData: FormData) {
     const { userId } = await auth();
     const validated = offerCreateSchema.safeParse(Object.fromEntries(formData.entries()));
     
@@ -31,7 +31,7 @@ export async function createOfferAction(prevState: any, formData: FormData) {
     }
 }
 
-export async function updateOfferAction(prevState: any, formData: FormData) {
+export async function updateOfferAction(prevState: unknown, formData: FormData) {
     const validated = offerUpdateSchema.safeParse(Object.fromEntries(formData.entries()));
     if (!validated.success) return { success: false, errors: validated.error.flatten().fieldErrors };
 

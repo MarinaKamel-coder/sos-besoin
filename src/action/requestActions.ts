@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "../lib/prisma";
+import { Prisma } from "../generated/prisma/client";
+import { createRequestWithCategory } from "../lib/transactions";
 import {
   requestCreateSchema,
   requestUpdateSchema,
@@ -11,7 +13,9 @@ import {
 } from "../schemas/request";
 import { auth } from "@clerk/nextjs/server";
 
-export async function getRequestsAction(filters?: any) {
+export async function getRequestsAction(
+  filters?: Prisma.ServiceRequestWhereInput,
+) {
   return await prisma.serviceRequest.findMany({
     where: filters,
     include: {
@@ -23,7 +27,7 @@ export async function getRequestsAction(filters?: any) {
 }
 
 export async function createRequestAction(
-  prevState: any,
+  prevState: unknown,
   formData: FormData,
 ): Promise<ActionState<RequestCreateInput>> {
   const { userId: clerkId } = await auth();
@@ -44,31 +48,36 @@ export async function createRequestAction(
   if (!dbUser)
     return { success: false, message: "Utilisateur introuvable en base." };
 
-  // On sépare categoryId pour gérer la relation Prisma
   const { categoryId, ...requestData } = validated.data;
 
-  try {
-    await prisma.serviceRequest.create({
-      data: {
-        ...requestData,
-        clientId: dbUser.id,
-        // On crée l'entrée dans la table de jointure RequestCategory
-        categories: {
-          create: [{ categoryId: categoryId }],
-        },
-      },
-    });
+  // Délègue à createRequestWithCategory (transactions.ts) au lieu de créer inline.
+  // ANCIEN CODE (conservé pour référence) :
+  // await prisma.serviceRequest.create({
+  //   data: {
+  //     ...requestData,
+  //     clientId: dbUser.id,
+  //     categories: { create: [{ categoryId }] },
+  //   },
+  // });
+  const result = await createRequestWithCategory({
+    clientId: dbUser.id,
+    categoryId,
+    request: requestData,
+  });
 
-    revalidatePath("/requests");
-    return { success: true, message: "Demande publiée !" };
-  } catch (e) {
-    console.error(e);
-    return { success: false, message: "Erreur lors de la création." };
+  if (!result.success) {
+    return {
+      success: false,
+      message: result.error ?? "Erreur lors de la création.",
+    };
   }
+
+  revalidatePath("/requests");
+  return { success: true, message: "Demande publiée !" };
 }
 
 export async function updateRequestAction(
-  prevState: any,
+  prevState: unknown,
   formData: FormData,
 ): Promise<ActionState<RequestUpdateInput>> {
   const validated = requestUpdateSchema.safeParse(
@@ -114,7 +123,7 @@ export async function updateRequestAction(
 
     revalidatePath(`/requests/${id}`);
     return { success: true, message: "Mise à jour réussie !" };
-  } catch (e) {
+  } catch {
     return { success: false, message: "Erreur technique." };
   }
 }
@@ -139,7 +148,7 @@ export async function deleteRequestAction(id: string) {
     });
     revalidatePath("/requests");
     return { success: true, message: "Demande supprimée" };
-  } catch (e) {
+  } catch {
     return { success: false, message: "Erreur lors de la suppression" };
   }
 }
