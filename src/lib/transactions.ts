@@ -8,12 +8,19 @@ function calcPlatformFee(subtotal: number) {
 
 /**
  * Transaction séquentielle:
- * Crée une catégorie (si elle n'existe pas) + une demande (request) dans un seul bloc atomique.
- * Note: comme category slug doit être unique, on fait un upsert.
+ * Crée une demande (request) liée à une catégorie existante dans un seul bloc atomique.
+ *
+ * Accepte désormais categoryId au lieu de { name, slug }
+ * car le formulaire soumet un categoryId (select), pas les métadonnées de la catégorie.
+ *
+ * ANCIENNE SIGNATURE (conservée pour référence) :
+ * category: { name: string; slug: string }
+ * → utilisait un upsert pour créer la catégorie si absente
+ * → remplacée car les catégories sont pré-existantes en BD (seed)
  */
 export async function createRequestWithCategory(params: {
   clientId: string;
-  category: { name: string; slug: string };
+  categoryId: string;
   request: {
     title: string;
     description: string;
@@ -23,11 +30,9 @@ export async function createRequestWithCategory(params: {
 }) {
   try {
     const result = await prisma.$transaction(async (tx) => {
-      // Upsert catégorie (atomique dans la transaction)
-      const category = await tx.category.upsert({
-        where: { slug: params.category.slug },
-        update: { name: params.category.name },
-        create: { name: params.category.name, slug: params.category.slug },
+      // Vérifie que la catégorie existe (lance une erreur si absente → rollback)
+      const category = await tx.category.findUniqueOrThrow({
+        where: { id: params.categoryId },
       });
 
       const request = await tx.serviceRequest.create({
@@ -71,7 +76,8 @@ export async function acceptOfferAndCreateBooking(params: {
       if (!request) throw new Error("Demande introuvable.");
       if (request.status !== "OPEN")
         throw new Error(`Demande non ouverte (status=${request.status}).`);
-      if (request.booking) throw new Error("Une réservation existe déjà pour cette demande.");
+      if (request.booking)
+        throw new Error("Une réservation existe déjà pour cette demande.");
 
       const offer = await tx.offer.findUnique({
         where: { id: params.offerId },
