@@ -22,18 +22,27 @@ export type RequestListQuery = z.infer<typeof requestListQuerySchema>;
 export const requestCreateSchema = z.object({
   title: z.string()
     .min(5, "Le titre doit avoir au moins 5 caractères")
-    .max(100, "Le titre est trop long"),
+    .max(100, "Le titre est trop long")
+    .regex(/^[a-zA-Z0-9\sÀ-ÿ\-]+$/, "Le titre contient des caractères interdits"), // Validation stricte 
+  
   description: z.string()
     .min(10, "La description doit avoir au moins 10 caractères")
-    .max(1000, "La description est trop longue"),
+    .max(1000, "La description est trop longue")
+    .trim(), // Supprime les espaces inutiles en début/fin
+
   neededAt: z.preprocess(
     (arg) => (typeof arg === "string" || arg instanceof Date ? new Date(arg) : arg),
     z.date({ message: "Veuillez fournir une date valide" })
   ).refine((date) => date > new Date(), {
     message: "La date prévue doit être dans le futur",
   }),
-  location: z.string().min(2, "La localisation est obligatoire").trim(),
-  // Pour le lien avec la catégorie dans Prisma
+
+  location: z.string()
+    .min(2, "La localisation est obligatoire")
+    .max(100, "Nom de lieu trop long")
+    .regex(/^[a-zA-Z\s\-]+$/, "Format de localisation invalide") // Regex pour bloquer les scripts 
+    .trim(),
+
   categoryId: z.string().min(1, "Veuillez sélectionner une catégorie"),
 });
 

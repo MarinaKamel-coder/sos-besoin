@@ -7,6 +7,7 @@ export const profileUpdateSchema = z.object({
     name: z.string()
         .min(2, "Le nom doit avoir au moins 2 caractères")
         .max(50)
+        .regex(/^[a-zA-Z\sÀ-ÿ\-]+$/, "Nom invalide") // B.1 
         .optional()
         .or(z.literal("")),
     bio: z.string()
@@ -15,6 +16,7 @@ export const profileUpdateSchema = z.object({
         .or(z.literal("")),
     city: z.string()
         .min(2, "Nom de ville invalide")
+        .max(50)
         .optional()
         .or(z.literal("")),
     phone: z.string()
