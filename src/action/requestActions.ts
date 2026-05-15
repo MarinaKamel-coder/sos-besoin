@@ -33,8 +33,48 @@ export async function createRequestAction(
   const { userId: clerkId } = await auth();
   if (!clerkId) return { success: false, message: "Non authentifié" };
 
+  const dbUser = await prisma.user.findUnique({ where: { clerkId } });
+  if (!dbUser)
+    return { success: false, message: "Utilisateur introuvable en base." };
+
+  // Gérer la nouvelle catégorie "Autre"
+  let categoryId = formData.get("categoryId") as string;
+  const newCategoryName = formData.get("newCategoryName") as string;
+
+  if (categoryId === "autre") {
+    if (!newCategoryName || newCategoryName.trim() === "") {
+      return {
+        success: false,
+        message: "Veuillez entrer un nom pour la nouvelle catégorie.",
+      };
+    }
+    // Créer le slug à partir du nom
+    const slug = newCategoryName
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "");
+
+    // Créer ou récupérer la catégorie
+    const category = await prisma.category.upsert({
+      where: { slug },
+      update: {},
+      create: { name: newCategoryName.trim(), slug },
+    });
+    categoryId = category.id;
+  }
+
+  // Remplacer categoryId dans formData
+  const updatedFormData = new FormData();
+  for (const [key, value] of formData.entries()) {
+    if (key !== "categoryId" && key !== "newCategoryName") {
+      updatedFormData.append(key, value);
+    }
+  }
+  updatedFormData.append("categoryId", categoryId);
+
   const validated = requestCreateSchema.safeParse(
-    Object.fromEntries(formData.entries()),
+    Object.fromEntries(updatedFormData.entries()),
   );
   if (!validated.success) {
     return {
@@ -44,24 +84,11 @@ export async function createRequestAction(
     };
   }
 
-  const dbUser = await prisma.user.findUnique({ where: { clerkId } });
-  if (!dbUser)
-    return { success: false, message: "Utilisateur introuvable en base." };
+  const { categoryId: validatedCategoryId, ...requestData } = validated.data;
 
-  const { categoryId, ...requestData } = validated.data;
-
-  // Délègue à createRequestWithCategory (transactions.ts) au lieu de créer inline.
-  // ANCIEN CODE (conservé pour référence) :
-  // await prisma.serviceRequest.create({
-  //   data: {
-  //     ...requestData,
-  //     clientId: dbUser.id,
-  //     categories: { create: [{ categoryId }] },
-  //   },
-  // });
   const result = await createRequestWithCategory({
     clientId: dbUser.id,
-    categoryId,
+    categoryId: validatedCategoryId,
     request: requestData,
   });
 
@@ -80,8 +107,41 @@ export async function updateRequestAction(
   prevState: unknown,
   formData: FormData,
 ): Promise<ActionState<RequestUpdateInput>> {
+  // Gérer la nouvelle catégorie "Autre"
+  let categoryId = formData.get("categoryId") as string;
+  const newCategoryName = formData.get("newCategoryName") as string;
+
+  if (categoryId === "autre") {
+    if (!newCategoryName || newCategoryName.trim() === "") {
+      return {
+        success: false,
+        message: "Veuillez entrer un nom pour la nouvelle catégorie.",
+      };
+    }
+    const slug = newCategoryName
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "");
+
+    const category = await prisma.category.upsert({
+      where: { slug },
+      update: {},
+      create: { name: newCategoryName.trim(), slug },
+    });
+    categoryId = category.id;
+  }
+
+  const updatedFormData = new FormData();
+  for (const [key, value] of formData.entries()) {
+    if (key !== "categoryId" && key !== "newCategoryName") {
+      updatedFormData.append(key, value);
+    }
+  }
+  updatedFormData.append("categoryId", categoryId);
+
   const validated = requestUpdateSchema.safeParse(
-    Object.fromEntries(formData.entries()),
+    Object.fromEntries(updatedFormData.entries()),
   );
   if (!validated.success) {
     return {
@@ -91,15 +151,11 @@ export async function updateRequestAction(
     };
   }
 
-  const { id, version, categoryId, ...data } = validated.data;
+  const { id, version, categoryId: validatedCategoryId, ...data } = validated.data;
 
   try {
-    // Utilisation de transaction pour l'updateMany (verrouillage optimiste)
     const result = await prisma.serviceRequest.updateMany({
-      where: {
-        id: id,
-        version: version,
-      },
+      where: { id, version },
       data: {
         ...data,
         version: { increment: 1 },
@@ -113,11 +169,10 @@ export async function updateRequestAction(
       };
     }
 
-    // Si la catégorie a changé, on met à jour la table de jointure
-    if (categoryId) {
+    if (validatedCategoryId) {
       await prisma.requestCategory.deleteMany({ where: { requestId: id } });
       await prisma.requestCategory.create({
-        data: { requestId: id, categoryId: categoryId },
+        data: { requestId: id, categoryId: validatedCategoryId },
       });
     }
 
@@ -133,15 +188,8 @@ export async function deleteRequestAction(id: string) {
   if (!userId) return { success: false, message: "Non autorisé" };
 
   try {
-    // Fix: résoudre l'id interne DB à partir du clerkId
-    // (userId de Clerk ≠ clientId Prisma)
     const dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
     if (!dbUser) return { success: false, message: "Utilisateur introuvable." };
-
-    // ANCIEN CODE (bug — clientId: userId utilisait le clerkId directement)
-    // await prisma.serviceRequest.delete({
-    //   where: { id, clientId: userId },
-    // });
 
     await prisma.serviceRequest.delete({
       where: { id, clientId: dbUser.id },
