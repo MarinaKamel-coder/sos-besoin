@@ -110,22 +110,26 @@ export default async function Page({ params }: PageProps) {
                       {offer.status}
                     </span>
 
-                    {offer.status === "PENDING" && (
-                      <form
-                        action={async () => {
-                          "use server";
-                          await addToCart(offer.id);
-                        }}
-                        className="mt-2"
-                      >
-                        <button
-                          type="submit"
-                          className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                      {offer.status === "PENDING" && (
+                        <form
+                          action={async () => {
+                            "use server";
+                            try {
+                              await addToCart(offer.id);
+                            } catch {
+                              // Erreur silencieuse — l'utilisateur n'est pas autorisé
+                            }
+                          }}
+                          className="mt-2"
                         >
-                          Ajouter au panier
-                        </button>
-                      </form>
-                    )}
+                          <button
+                            type="submit"
+                            className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                          >
+                            Ajouter au panier
+                          </button>
+                        </form>
+                      )}                    
                   </div>
                 </div>
               </li>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
 import { getCartCount } from "../action/cart";
 
 async function CartCount() {
@@ -91,16 +91,18 @@ export default async function Header() {
         <div className="flex items-center gap-3">
           {!userId ? (
             <>
-              <SignInButton>
-                <button className="rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                  Connexion
-                </button>
-              </SignInButton>
-              <SignUpButton>
-                <button className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                  Inscription
-                </button>
-              </SignUpButton>
+           <Link
+              href="/sign-in"
+              className="rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            >  
+              Connexion
+            </Link>
+            <Link
+              href="/sign-up"
+              className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Inscription
+            </Link>
             </>
           ) : (
             <UserButton />

@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
-import { SignInButton } from "@clerk/nextjs";
 import prisma from "@/src/lib/prisma";
 import RequestForm from "@/src/components/requests/RequestForm";
+import Link from "next/link";
 
 export default async function Home() {
   const { userId } = await auth();
@@ -16,11 +16,12 @@ export default async function Home() {
           Publiez vos demandes de service et recevez des offres de prestataires
           qualifiés.
         </p>
-        <SignInButton>
-          <button className="rounded-xl bg-blue-600 px-8 py-3 text-white font-semibold hover:bg-blue-500 transition-colors">
-            Se connecter pour commencer
-          </button>
-        </SignInButton>
+        <Link
+          href="/sign-in"
+          className="rounded-xl bg-blue-600 px-8 py-3 text-white font-semibold hover:bg-blue-500 transition-colors"
+        >
+          Se connecter pour commencer
+        </Link>
       </div>
     );
   }
