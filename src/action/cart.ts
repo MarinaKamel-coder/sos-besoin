@@ -17,13 +17,16 @@ async function getCurrentDbUser() {
 
   if (!user) {
     const clerkUser = await currentUser();
-    user = await prisma.user.create({
-      data: {
-        clerkId: clerkUserId,
-        email: clerkUser?.emailAddresses[0]?.emailAddress ?? "",
-        name: clerkUser?.fullName ?? clerkUser?.firstName ?? null,
-      },
-    });
+      user = await prisma.user.upsert({
+        where: { email: clerkUser?.emailAddresses[0]?.emailAddress ?? "" },
+        update: { clerkId: clerkUserId },
+        create: {
+          clerkId: clerkUserId,
+          email: clerkUser?.emailAddresses[0]?.emailAddress ?? "",
+          name: clerkUser?.fullName ?? clerkUser?.firstName ?? null,
+        },
+      });
+
   }
 
   return user;

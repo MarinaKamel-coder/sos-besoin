@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   createRequestAction,
   updateRequestAction,
@@ -30,8 +30,9 @@ export default function RequestForm({
   categories,
 }: RequestFormProps) {
   const isEdit = !!initialData?.id;
+  const [selectedCategory, setSelectedCategory] = useState(initialData?.categoryId ?? "");
+  const [newCategoryName, setNewCategoryName] = useState("");
 
-  // 2. Utilisez une fonction wrapper pour unifier les signatures
   const actionWrapper = async (
     prevState: unknown,
     formData: FormData,
@@ -48,7 +49,6 @@ export default function RequestForm({
     );
   };
 
-  // 3. Passez le wrapper à useActionState
   const [state, formAction, isPending] = useActionState(actionWrapper, {
     success: false,
     message: "",
@@ -70,7 +70,6 @@ export default function RequestForm({
         </p>
       </div>
 
-      {/* Champs cachés cruciaux pour l'Update (Verrouillage Optimiste) */}
       {isEdit && (
         <>
           <input type="hidden" name="id" value={initialData.id} />
@@ -78,12 +77,9 @@ export default function RequestForm({
         </>
       )}
 
-      {/* Titre du service */}
+      {/* Titre */}
       <div className="space-y-2">
-        <label
-          htmlFor="title"
-          className="block text-sm font-semibold text-slate-300"
-        >
+        <label htmlFor="title" className="block text-sm font-semibold text-slate-300">
           Titre
         </label>
         <input
@@ -103,12 +99,9 @@ export default function RequestForm({
         )}
       </div>
 
-      {/* Description détaillée */}
+      {/* Description */}
       <div className="space-y-2">
-        <label
-          htmlFor="description"
-          className="block text-sm font-semibold text-slate-300"
-        >
+        <label htmlFor="description" className="block text-sm font-semibold text-slate-300">
           Description
         </label>
         <textarea
@@ -131,12 +124,9 @@ export default function RequestForm({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Date du besoin */}
+        {/* Date */}
         <div className="space-y-2">
-          <label
-            htmlFor="neededAt"
-            className="block text-sm font-semibold text-slate-300"
-          >
+          <label htmlFor="neededAt" className="block text-sm font-semibold text-slate-300">
             Date souhaitée
           </label>
           <input
@@ -157,12 +147,9 @@ export default function RequestForm({
           )}
         </div>
 
-        {/* Localisation */}
+        {/* Lieu */}
         <div className="space-y-2">
-          <label
-            htmlFor="location"
-            className="block text-sm font-semibold text-slate-300"
-          >
+          <label htmlFor="location" className="block text-sm font-semibold text-slate-300">
             Lieu (Ville)
           </label>
           <input
@@ -183,16 +170,14 @@ export default function RequestForm({
 
       {/* Catégorie */}
       <div className="space-y-2">
-        <label
-          htmlFor="categoryId"
-          className="block text-sm font-semibold text-slate-300"
-        >
+        <label htmlFor="categoryId" className="block text-sm font-semibold text-slate-300">
           Catégorie
         </label>
         <select
           id="categoryId"
           name="categoryId"
-          defaultValue={initialData?.categoryId ?? ""}
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
           className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
         >
           <option value="" disabled>
@@ -203,7 +188,25 @@ export default function RequestForm({
               {cat.name}
             </option>
           ))}
+          <option value="autre">+ Autre (nouvelle catégorie)</option>
         </select>
+
+        {selectedCategory === "autre" && (
+          <div className="mt-2 space-y-1">
+            <input
+              type="text"
+              name="newCategoryName"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              placeholder="Nom de la nouvelle catégorie"
+              className="w-full p-3 bg-slate-800 border border-blue-500 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-white"
+            />
+            <p className="text-xs text-slate-400">
+              Cette catégorie sera créée et disponible pour tous.
+            </p>
+          </div>
+        )}
+
         {state.errors?.categoryId && (
           <p className="text-red-400 text-xs italic">
             {state.errors.categoryId[0]}
@@ -211,7 +214,7 @@ export default function RequestForm({
         )}
       </div>
 
-      {/* Bouton de soumission */}
+      {/* Bouton */}
       <div className="pt-6">
         <button
           type="submit"
@@ -250,7 +253,6 @@ export default function RequestForm({
         </button>
       </div>
 
-      {/* Retour d'information (Succès ou Erreur globale) */}
       {state.message && (
         <div
           className={`mt-4 p-4 rounded-xl border flex items-center gap-3 animate-pulse-once ${
