@@ -3,7 +3,7 @@ import {
   removeFromCart,
   clearCart,
 } from "../../action/cart";
-import { createCheckoutSession } from "../actions/checkout";
+import { createCheckoutSession } from "../../action/checkout";
 
 export default async function CartPage() {
   const cart = await getCart();

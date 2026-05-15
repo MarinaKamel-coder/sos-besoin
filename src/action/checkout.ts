@@ -1,8 +1,8 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import stripe from '../../lib/stripe';
-import prisma from '../../lib/prisma';
+import stripe from '../lib/stripe';
+import prisma from '../lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 
 export async function createCheckoutSession() {
