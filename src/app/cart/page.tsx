@@ -1,10 +1,9 @@
 import {
   getCart,
-  // updateCartItemQuantity, // désactivé — 1 offre = 1 réservation
   removeFromCart,
   clearCart,
-  confirmCart,
 } from "../../action/cart";
+import { createCheckoutSession } from "../actions/checkout";
 
 export default async function CartPage() {
   const cart = await getCart();
@@ -33,48 +32,7 @@ export default async function CartPage() {
                 <p className="mt-2 font-medium">
                   Prix : {(item.offer.price / 100).toFixed(2)} $
                 </p>
-
-                {/* NOTE: boutons +/- quantité désactivés — 1 offre = 1 réservation, pas de multi-exemplaire */}
-                {/* <div className="mt-4 flex items-center gap-2">
-                  <form
-                    action={async () => {
-                      "use server";
-                      await updateCartItemQuantity(item.id, Math.max(1, item.quantity - 1));
-                    }}
-                  >
-                    <button type="submit" className="rounded border px-3 py-1">
-                      -
-                    </button>
-                  </form>
-
-                  <span>{item.quantity}</span>
-
-                  <form
-                    action={async () => {
-                      "use server";
-                      await updateCartItemQuantity(item.id, item.quantity + 1);
-                    }}
-                  >
-                    <button type="submit" className="rounded border px-3 py-1">
-                      +
-                    </button>
-                  </form>
-
-                  <form
-                    action={async () => {
-                      "use server";
-                      await removeFromCart(item.id);
-                    }}
-                    className="ml-auto"
-                  >
-                    <button
-                      type="submit"
-                      className="rounded bg-red-600 px-3 py-1 text-white"
-                    >
-                      Supprimer
-                    </button>
-                  </form>
-                </div> */}
+            
                 <div className="mt-4 flex items-center gap-2">
                   <form
                     action={async () => {
@@ -112,18 +70,12 @@ export default async function CartPage() {
               </div>
             </div>
 
-            <form
-              action={async () => {
-                "use server";
-                await confirmCart();
-              }}
-              className="mt-4"
-            >
+           <form action={createCheckoutSession} className="mt-4">
               <button
                 type="submit"
-                className="w-full rounded bg-black px-4 py-2 text-white"
+                className="w-full rounded bg-green-600 px-4 py-2 text-white"
               >
-                Confirmer et procéder au paiement
+                Payer avec Stripe
               </button>
             </form>
 
