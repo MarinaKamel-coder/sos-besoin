@@ -1,181 +1,118 @@
-import { NextRequest, NextResponse } from 'next/server';
-import stripe from '../../../../lib/stripe';
-import prisma from '../../../../lib/prisma';
-import Stripe from 'stripe';
+import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
+import Stripe from "stripe";
+import stripe from "@/src/lib/stripe";
+import prisma from "@/src/lib/prisma";
 
-export async function POST(req: NextRequest) {
-    const body = await req.text();
+const PLATFORM_FEE_RATE = 0.1;
 
-    const signature = req.headers.get('stripe-signature');
+export async function POST(request: NextRequest) {
+  const body = await request.text();
+  const signature = request.headers.get("stripe-signature");
 
-    if (!signature) {
-        return NextResponse.json(
-            { error: 'Signature Stripe manquante' },
-            { status: 400 }
-        );
+  if (!signature) {
+    return NextResponse.json(
+      { error: "stripe-signature manquant" },
+      { status: 400 },
+    );
+  }
+
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error("[WEBHOOK] STRIPE_WEBHOOK_SECRET non configuré");
+    return NextResponse.json(
+      { error: "Webhook secret non configuré" },
+      { status: 500 },
+    );
+  }
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+  } catch (err) {
+    console.error("[WEBHOOK] Signature invalide:", err);
+    return NextResponse.json({ error: "Signature invalide" }, { status: 400 });
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const { cartId } = session.metadata ?? {};
+
+    if (!cartId) {
+      return NextResponse.json(
+        { error: "Metadata cartId manquant" },
+        { status: 400 },
+      );
     }
-
-    let event: Stripe.Event;
 
     try {
-        event = stripe.webhooks.constructEvent(
-            body,
-            signature,
-            process.env.STRIPE_WEBHOOK_SECRET!
-        );
+      const cartItems = await prisma.cartItem.findMany({
+        where: { cartId },
+        include: { offer: true },
+      });
 
-        console.log(`Webhook reçu : ${event.type}`);
-    } catch (error) {
-        console.error('Erreur vérification webhook :', error);
+      const paymentIntentId =
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : (session.payment_intent?.id ?? null);
 
-        return NextResponse.json(
-            { error: 'Webhook invalide' },
-            { status: 400 }
-        );
+      for (const item of cartItems) {
+        const subtotal = item.offer.price * item.quantity;
+        const platformFee = Math.round(subtotal * PLATFORM_FEE_RATE);
+        const amountTotal = subtotal + platformFee;
+
+        await prisma.$transaction(async (tx) => {
+          // Idempotence : éviter les doublons si Stripe renvoie l'événement
+          const existing = await tx.booking.findUnique({
+            where: { offerId: item.offerId },
+          });
+          if (existing) return;
+
+          await tx.booking.create({
+            data: {
+              requestId: item.offer.requestId,
+              offerId: item.offerId,
+              status: "CONFIRMED",
+              amountSubtotal: subtotal,
+              platformFee,
+              amountTotal,
+              payment: {
+                create: {
+                  status: "SUCCEEDED",
+                  stripePaymentIntentId: paymentIntentId,
+                },
+              },
+            },
+          });
+
+          await tx.offer.update({
+            where: { id: item.offerId },
+            data: { status: "ACCEPTED" },
+          });
+
+          await tx.serviceRequest.update({
+            where: { id: item.offer.requestId },
+            data: { status: "FILLED" },
+          });
+        });
+      }
+
+      // Vider le panier
+      await prisma.cartItem.deleteMany({ where: { cartId } });
+
+      revalidatePath("/cart");
+      revalidatePath("/service-requests");
+    } catch (err) {
+      console.error(
+        "[WEBHOOK] Erreur traitement checkout.session.completed:",
+        err,
+      );
+      return NextResponse.json(
+        { error: "Erreur de traitement" },
+        { status: 500 },
+      );
     }
+  }
 
-    // ==========================================
-    // CHECKOUT RÉUSSI
-    // ==========================================
-    if (event.type === 'checkout.session.completed') {
-        try {
-            const session = event.data.object as Stripe.Checkout.Session;
-
-            const cartId = session.metadata?.cartId;
-
-            if (!cartId) {
-                throw new Error('cartId manquant dans metadata');
-            }
-
-            console.log(`Paiement réussi pour panier ${cartId}`);
-
-            // Récupérer le panier
-            const cart = await prisma.cart.findUnique({
-                where: {
-                    id: cartId,
-                },
-                include: {
-                    items: {
-                        include: {
-                            offer: true,
-                        },
-                    },
-                },
-            });
-
-            if (!cart) {
-                throw new Error('Panier introuvable');
-            }
-
-            // Parcourir chaque item
-            for (const item of cart.items) {
-                // Trouver booking associé à l'offre
-                const booking = await prisma.booking.findFirst({
-                    where: {
-                        offerId: item.offer.id,
-                    },
-                });
-
-                if (!booking) {
-                    console.warn(
-                        `Booking introuvable pour offer ${item.offer.id}`
-                    );
-                    continue;
-                }
-
-                // Confirmer booking
-                await prisma.booking.update({
-                    where: {
-                        id: booking.id,
-                    },
-                    data: {
-                        status: 'CONFIRMED',
-                    },
-                });
-
-                console.log(`Booking confirmé : ${booking.id}`);
-
-                // Créer ou update paiement
-                await prisma.payment.upsert({
-                    where: {
-                        bookingId: booking.id,
-                    },
-                    update: {
-                        status: 'SUCCEEDED',
-                        stripePaymentIntentId:
-                            typeof session.payment_intent === 'string'
-                                ? session.payment_intent
-                                : null,
-                    },
-                    create: {
-                        bookingId: booking.id,
-                        status: 'SUCCEEDED',
-                        stripePaymentIntentId:
-                            typeof session.payment_intent === 'string'
-                                ? session.payment_intent
-                                : null,
-                    },
-                });
-
-                console.log(`Paiement enregistré : ${booking.id}`);
-            }
-
-            // Vider le panier
-            await prisma.cartItem.deleteMany({
-                where: {
-                    cartId,
-                },
-            });
-
-            console.log('Panier vidé');
-        } catch (error) {
-            console.error(
-                'Erreur traitement checkout.session.completed :',
-                error
-            );
-
-            return NextResponse.json(
-                { error: 'Erreur traitement paiement réussi' },
-                { status: 500 }
-            );
-        }
-    }
-
-    // ==========================================
-    // PAIEMENT ÉCHOUÉ
-    // ==========================================
-    if (event.type === 'payment_intent.payment_failed') {
-        try {
-            const paymentIntent =
-                event.data.object as Stripe.PaymentIntent;
-
-            console.log(
-                `Paiement échoué : ${paymentIntent.id}`
-            );
-
-            // Mettre paiement FAILED
-            await prisma.payment.updateMany({
-                where: {
-                    stripePaymentIntentId: paymentIntent.id,
-                },
-                data: {
-                    status: 'FAILED',
-                },
-            });
-
-            console.log('Paiement marqué FAILED');
-        } catch (error) {
-            console.error(
-                'Erreur traitement payment_intent.payment_failed :',
-                error
-            );
-
-            return NextResponse.json(
-                { error: 'Erreur traitement paiement échoué' },
-                { status: 500 }
-            );
-        }
-    }
-
-    return NextResponse.json({ received: true });
+  return NextResponse.json({ received: true });
 }

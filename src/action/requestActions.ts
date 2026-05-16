@@ -10,7 +10,7 @@ import {
   ActionState,
   RequestCreateInput,
   RequestUpdateInput,
-  requestIdSchema, 
+  requestIdSchema,
 } from "../schemas/request";
 import { auth } from "@clerk/nextjs/server";
 import DOMPurify from "isomorphic-dompurify";
@@ -50,12 +50,18 @@ export async function createRequestAction(
   // Gestion sécurisée de la catégorie "Autre"
   if (categoryId === "autre") {
     if (!newCategoryName || newCategoryName.trim() === "") {
-      return { success: false, message: "Veuillez entrer un nom pour la catégorie." };
+      return {
+        success: false,
+        message: "Veuillez entrer un nom pour la catégorie.",
+      };
     }
-    
+
     // B.1 Nettoyage du nom de catégorie (Anti-Injection/XSS)
     const cleanCategoryName = DOMPurify.sanitize(newCategoryName.trim());
-    const slug = cleanCategoryName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    const slug = cleanCategoryName
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "");
 
     const category = await prisma.category.upsert({
       where: { slug },
@@ -67,7 +73,10 @@ export async function createRequestAction(
 
   // Reconstruction du FormData pour validation Zod
   const rawEntries = Object.fromEntries(formData.entries());
-  const validated = requestCreateSchema.safeParse({ ...rawEntries, categoryId });
+  const validated = requestCreateSchema.safeParse({
+    ...rawEntries,
+    categoryId,
+  });
 
   if (!validated.success) {
     return {
@@ -114,39 +123,54 @@ export async function updateRequestAction(
   const dbUser = await prisma.user.findUnique({ where: { clerkId } });
   if (!dbUser) return { success: false, message: "Action non autorisée." };
 
-  const validated = requestUpdateSchema.safeParse(Object.fromEntries(formData.entries()));
+  const validated = requestUpdateSchema.safeParse(
+    Object.fromEntries(formData.entries()),
+  );
   if (!validated.success) {
-      return { 
-        success: false, 
-        message: "Données invalides", // Ajoute cette ligne
-        errors: validated.error.flatten().fieldErrors 
-      };
-    }
+    return {
+      success: false,
+      message: "Données invalides", // Ajoute cette ligne
+      errors: validated.error.flatten().fieldErrors,
+    };
+  }
 
-  const { id, version, ...data } = validated.data;
+  const { id, version, categoryId, ...data } = validated.data;
 
   try {
     // Vérification que l'utilisateur est bien le propriétaire (clientId: dbUser.id)
     // Verrouillage optimiste via 'version'
     const result = await prisma.serviceRequest.updateMany({
-      where: { 
-        id, 
-        version, 
-        clientId: dbUser.id 
+      where: {
+        id,
+        version,
+        clientId: dbUser.id,
       },
       data: {
         ...data,
         title: data.title ? DOMPurify.sanitize(data.title) : undefined,
-        description: data.description ? DOMPurify.sanitize(data.description) : undefined,
+        description: data.description
+          ? DOMPurify.sanitize(data.description)
+          : undefined,
         version: { increment: 1 },
       },
     });
 
     if (result.count === 0) {
-      return { success: false, message: "Conflit de modification ou accès refusé." };
+      return {
+        success: false,
+        message: "Conflit de modification ou accès refusé.",
+      };
     }
 
-    revalidatePath(`/requests/${id}`);
+    // Mettre à jour la catégorie si elle a changé
+    if (categoryId) {
+      await prisma.requestCategory.deleteMany({ where: { requestId: id } });
+      await prisma.requestCategory.create({
+        data: { requestId: id, categoryId },
+      });
+    }
+
+    revalidatePath(`/service-requests/${id}`);
     return { success: true, message: "Mise à jour réussie !" };
   } catch (e) {
     console.error("[UPDATE_REQUEST_ERROR]", e);
@@ -170,9 +194,9 @@ export async function deleteRequestAction(id: string) {
 
     // Suppression sécurisée : l'ID de l'utilisateur doit correspondre au clientId
     await prisma.serviceRequest.delete({
-      where: { 
-        id, 
-        clientId: dbUser.id 
+      where: {
+        id,
+        clientId: dbUser.id,
       },
     });
 

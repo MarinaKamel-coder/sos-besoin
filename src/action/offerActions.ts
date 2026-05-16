@@ -46,23 +46,24 @@ export async function createOfferAction(
   const sanitizedMessage = DOMPurify.sanitize(validated.data.message);
 
   const user = await prisma.user.findUnique({ where: { clerkId } });
-  if (!user) return { success: false, message: "Profil utilisateur introuvable" };
+  if (!user)
+    return { success: false, message: "Profil utilisateur introuvable" };
 
   try {
     await prisma.offer.create({
-      data: { 
-        ...validated.data, 
-        message: sanitizedMessage, 
-        providerId: user.id 
+      data: {
+        ...validated.data,
+        message: sanitizedMessage,
+        providerId: user.id,
       },
     });
-    
+
     revalidatePath(`/service-requests/${validated.data.requestId}`);
     return { success: true, message: "Offre envoyée avec succès !" };
   } catch (e) {
     console.error("[CREATE_OFFER_ERROR]", e);
     // Erreur de contrainte unique (P2002 : l'utilisateur a déjà fait une offre)
-    if (e instanceof Error && (e as any).code === "P2002") {
+    if (e instanceof Error && (e as { code?: string }).code === "P2002") {
       return {
         success: false,
         message: "Vous avez déjà soumis une offre pour cette demande.",
@@ -92,7 +93,7 @@ export async function updateOfferAction(
   }
 
   const { id, version, message, ...data } = validated.data;
-  
+
   // Sanitisation si le message est présent
   const sanitizedMessage = message ? DOMPurify.sanitize(message) : undefined;
 
@@ -101,28 +102,29 @@ export async function updateOfferAction(
 
   try {
     const result = await prisma.offer.updateMany({
-      where: { 
-        id, 
-        version, 
-        providerId: user.id   // Vérification de propriété
+      where: {
+        id,
+        version,
+        providerId: user.id, // Vérification de propriété
       },
-      data: { 
-        ...data, 
+      data: {
+        ...data,
         ...(sanitizedMessage && { message: sanitizedMessage }),
-        version: { increment: 1 } 
+        version: { increment: 1 },
       },
     });
 
     if (result.count === 0) {
       return {
         success: false,
-        message: "L'offre a été modifiée ou acceptée par le client entre-temps.",
+        message:
+          "L'offre a été modifiée ou acceptée par le client entre-temps.",
       };
     }
 
     revalidatePath("/dashboard/offers");
     return { success: true, message: "Offre mise à jour." };
-  } catch (e) {
+  } catch {
     return { success: false, message: "Impossible de modifier l'offre." };
   }
 }
@@ -143,15 +145,18 @@ export async function deleteOfferAction(id: string, version: number) {
     if (!dbUser) throw new Error("User not found");
 
     const result = await prisma.offer.deleteMany({
-      where: { 
-        id, 
+      where: {
+        id,
         providerId: dbUser.id, // S'assurer que c'est bien l'auteur qui supprime
-        version 
+        version,
       },
     });
 
     if (result.count === 0) {
-      return { success: false, message: "Conflit de version ou action non autorisée." };
+      return {
+        success: false,
+        message: "Conflit de version ou action non autorisée.",
+      };
     }
 
     revalidatePath("/dashboard/offers");
