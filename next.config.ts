@@ -34,11 +34,11 @@ const securityHeaders = [
       // Ajout de https://challenges.cloudflare.com pour le CAPTCHA
       `script-src 'self' 'unsafe-inline' ${
         isProduction ? '' : "'unsafe-eval'"
-      } https://js.stripe.com https://bursting-vulture-4.clerk.accounts.dev https://challenges.cloudflare.com`,
+      } https://js.stripe.com https://strong-emu-66.clerk.accounts.dev https://challenges.cloudflare.com`, 
       
-      "frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com https://bursting-vulture-4.clerk.accounts.dev https://challenges.cloudflare.com",
+      "frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com https://strong-emu-66.clerk.accounts.dev https://challenges.cloudflare.com", // 🌟 URL mise à jour
       
-      "connect-src 'self' https://api.stripe.com https://bursting-vulture-4.clerk.accounts.dev",
+      "connect-src 'self' https://api.stripe.com https://strong-emu-66.clerk.accounts.dev", 
       
       "img-src 'self' data: https: https://img.clerk.com",
       
