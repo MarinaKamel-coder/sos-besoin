@@ -17,8 +17,8 @@ export default clerkMiddleware(async (auth, request) => {
   // Protection des routes privées (Dashboard, création d'offres, profil)
   if (!isPublicRoute(request)) {
     await auth.protect(); 
-    }
-  });
+  }
+});
 
 export const config = {
   matcher: [

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { createOfferAction } from "@/src/action/offerActions";
 
 type OfferFormProps = {
@@ -13,66 +13,108 @@ export default function OfferForm({ requestId }: OfferFormProps) {
     message: "",
   });
 
+  // State local pour afficher une conversion en temps réel si besoin ou formater la saisie
+  const [displayPrice, setDisplayPrice] = useState("");
+
   return (
     <form
       action={formAction}
-      className="space-y-4 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/50"
+      className="space-y-5 rounded-2xl border border-slate-900 bg-slate-900/20 p-6 backdrop-blur-sm shadow-sm"
     >
-      <h3 className="text-lg font-semibold">Soumettre une offre</h3>
+      <div className="border-b border-slate-900 pb-3">
+        <h3 className="text-base font-black text-white tracking-tight">
+          Proposer une offre
+        </h3>
+        <p className="text-xs text-slate-500 mt-0.5">
+          Soumettez votre meilleure proposition tarifaire pour ce service.
+        </p>
+      </div>
 
+      {/* Payload masqué transmis à la Server Action */}
       <input type="hidden" name="requestId" value={requestId} />
 
-      <div className="space-y-1">
-        <label htmlFor="price" className="block text-sm font-medium">
-          Prix (en cents - ex : 25000 pour 250.00 $)
+      {/* Champ Prix : conversion transparente dollars -> cents */}
+      <div className="space-y-1.5">
+        <label htmlFor="displayPrice" className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+          Votre tarif
         </label>
-        <input
-          id="price"
-          name="price"
-          type="number"
-          min="1"
-          required
-          placeholder="25000"
-          className="w-full rounded border border-zinc-300 bg-white p-2 text-zinc-900 outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+        <div className="relative rounded-lg shadow-sm">
+          <input
+            id="displayPrice"
+            type="number"
+            step="0.01"
+            min="0.01"
+            required
+            value={displayPrice}
+            onChange={(e) => setDisplayPrice(e.target.value)}
+            placeholder="0.00"
+            className="w-full pl-4 pr-16 py-2.5 bg-slate-950 text-sm text-slate-200 placeholder-slate-600 rounded-lg border border-slate-900 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 outline-none transition-all"
+          />
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+            <span className="text-xs font-bold text-slate-500 tracking-wider">$ CAD</span>
+          </div>
+        </div>
+
+        {/* On injecte la valeur convertie en cents pour ne rien casser côté backend (Zod / Prisma) */}
+        <input 
+          type="hidden" 
+          name="price" 
+          value={displayPrice ? Math.round(parseFloat(displayPrice) * 100) : ""} 
         />
+
         {state.errors?.price && (
-          <p className="text-xs text-red-500">{state.errors.price[0]}</p>
+          <p className="text-xs font-medium text-rose-400/90 pt-0.5">{state.errors.price[0]}</p>
         )}
       </div>
 
-      <div className="space-y-1">
-        <label htmlFor="message" className="block text-sm font-medium">
-          Message (10 caracteres minimum)
+      {/* Champ Message de motivation */}
+      <div className="space-y-1.5">
+        <label htmlFor="message" className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+          Détails de la proposition
         </label>
         <textarea
           id="message"
           name="message"
           rows={4}
           required
-          placeholder="Decrivez votre experience et votre disponibilite..."
-          className="w-full rounded border border-zinc-300 bg-white p-2 text-zinc-900 outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+          placeholder="Décrivez votre expertise, votre matériel et vos disponibilités pour réaliser ce mandat..."
+          className="w-full px-4 py-2.5 bg-slate-950 text-sm text-slate-200 placeholder-slate-600 rounded-lg border border-slate-900 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 outline-none transition-all resize-none leading-relaxed"
         />
         {state.errors?.message && (
-          <p className="text-xs text-red-500">{state.errors.message[0]}</p>
+          <p className="text-xs font-medium text-rose-400/90 pt-0.5">{state.errors.message[0]}</p>
         )}
       </div>
 
+      {/* Bouton de soumission */}
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded bg-blue-600 py-2 font-semibold text-white hover:bg-blue-700 disabled:cursor-wait disabled:bg-zinc-400"
+        className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-500/5 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-wait disabled:pointer-events-none"
       >
-        {isPending ? "Envoi..." : "Envoyer mon offre"}
+        {isPending ? (
+          <>
+            <svg className="animate-spin text-white w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            <span>Transmission de l&apos;offre...</span>
+          </>
+        ) : (
+          <span>Envoyer ma proposition</span>
+        )}
       </button>
 
+      {/* Alerte globale de retour d'action */}
       {state.message && (
-        <p
-          className={`text-sm ${
-            state.success ? "text-green-600 dark:text-green-400" : "text-red-500"
+        <div 
+          className={`rounded-lg border p-3.5 text-xs font-medium text-center ${
+            state.success 
+              ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-400" 
+              : "bg-rose-500/5 border-rose-500/10 text-rose-400"
           }`}
         >
-          {state.message}
-        </p>
+          {state.success ? "✓ " : "⚠️ "} {state.message}
+        </div>
       )}
     </form>
   );

@@ -49,6 +49,30 @@ export async function createOfferAction(
   if (!user)
     return { success: false, message: "Profil utilisateur introuvable" };
 
+  // ✅ SÉCURITÉ : Seul un PROVIDER peut créer une offre
+  if (user.role !== "PROVIDER" && user.role !== "ADMIN") {
+    return { 
+      success: false, 
+      message: "Seuls les prestataires peuvent créer des offres. Veuillez vous enregistrer en tant que prestataire ou contacter l'administrateur." 
+    };
+  }
+
+  // ✅ SÉCURITÉ : Vérifier que le provider n'est pas le client de la demande
+  const request = await prisma.serviceRequest.findUnique({
+    where: { id: validated.data.requestId },
+  });
+  
+  if (!request) {
+    return { success: false, message: "Demande introuvable" };
+  }
+
+  if (request.clientId === user.id) {
+    return { 
+      success: false, 
+      message: "Vous ne pouvez pas créer une offre sur votre propre demande. Vous êtes le client, pas un prestataire." 
+    };
+  }
+
   try {
     await prisma.offer.create({
       data: {
