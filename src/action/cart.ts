@@ -4,8 +4,21 @@ import { revalidatePath } from "next/cache";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { requestIdSchema } from "../schemas/request";
 import prisma from "../lib/prisma";
+import { Prisma, Booking } from "../generated/prisma/client";
 
 const PLATFORM_FEE_RATE = 0.1;
+
+// Définition d'un type strict pour les éléments récupérés du panier avec leurs inclusions
+type CartItemWithDetails = Prisma.CartItemGetPayload<{
+  include: {
+    offer: {
+      include: {
+        request: true;
+        booking: true;
+      };
+    };
+  };
+}>;
 
 // --- UTILS ---
 async function getCurrentDbUser() {
@@ -28,11 +41,34 @@ async function getCurrentDbUser() {
   return user;
 }
 
-// --- ACTIONS ---
+// --- ACTIONS DE LECTURE (GETTERS) ---
+
+/**
+ * Récupère le nombre total d'articles dans le panier
+ */
+export async function getCartCount(): Promise<number> {
+  try {
+    const currentUser = await getCurrentDbUser();
+
+    const cart = await prisma.cart.findUnique({
+      where: { userId: currentUser.id },
+      include: { items: true },
+    });
+
+    if (!cart) return 0;
+
+    return cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  } catch (error) {
+    console.error("[GET_CART_COUNT_ERROR]", error);
+    return 0;
+  }
+}
+
+// --- ACTIONS DE MUTATION ---
 
 export async function addToCart(offerId: string) {
   try {
-    // B.1 Validation stricte
+    //  Validation stricte
     requestIdSchema.parse(offerId);
 
     const currentUser = await getCurrentDbUser();
@@ -77,7 +113,7 @@ export async function addToCart(offerId: string) {
 
 export async function removeFromCart(itemId: string) {
   try {
-    // B.1 Validation stricte de l'ID
+    //  Validation stricte de l'ID
     requestIdSchema.parse(itemId);
     const currentUser = await getCurrentDbUser();
 
@@ -99,7 +135,7 @@ export async function removeFromCart(itemId: string) {
   }
 }
 
-export async function confirmCart() {
+export async function confirmCart(): Promise<{ success: boolean; message: string; bookings?: Booking[] }> {
   try {
     const currentUser = await getCurrentDbUser();
     
@@ -112,9 +148,12 @@ export async function confirmCart() {
       return { success: false, message: "Le panier est vide." };
     }
 
-    const validItems = cart.items.filter((item) => !item.offer.booking);
+    // Typage explicite du paramètre 'item' pour enlever le 'any' implicite
+    const validItems = (cart.items as CartItemWithDetails[]).filter(
+      (item: CartItemWithDetails) => !item.offer.booking
+    );
 
-    // B.1 Transaction pour garantir l'atomicité
+    //  Transaction pour garantir l'atomicité
     const createdBookings = await prisma.$transaction(async (tx) => {
       const bookings = [];
       for (const item of validItems) {
