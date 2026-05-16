@@ -14,7 +14,7 @@ type CartItemWithDetails = Prisma.CartItemGetPayload<{
       include: {
         request: true;
         booking: true;
-        provider: true,
+        provider: true;
       };
     };
   };
@@ -42,7 +42,10 @@ async function getCurrentDbUser() {
 }
 
 function calculateTotals(items: CartItemWithDetails[]) {
-  const subtotal = items.reduce((sum, item) => sum + item.offer.price * item.quantity, 0);
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.offer.price * item.quantity,
+    0,
+  );
   const platformFee = Math.round(subtotal * PLATFORM_FEE_RATE);
   const total = subtotal + platformFee;
 
@@ -80,7 +83,9 @@ export async function getCart() {
       return { items: [], subtotal: 0, platformFee: 0, total: 0, itemCount: 0 };
     }
 
-    const validItems = (cart.items as CartItemWithDetails[]).filter((item) => !item.offer.booking);
+    const validItems = (cart.items as CartItemWithDetails[]).filter(
+      (item) => !item.offer.booking,
+    );
     const { subtotal, platformFee, total } = calculateTotals(validItems);
     const itemCount = validItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -171,7 +176,10 @@ export async function removeFromCart(itemId: string) {
       include: { cart: true },
     });
 
-    if (!cartItem || (cartItem.cart.userId !== currentUser.id && currentUser.role !== "ADMIN")) {
+    if (
+      !cartItem ||
+      (cartItem.cart.userId !== currentUser.id && currentUser.role !== "ADMIN")
+    ) {
       return { success: false, message: "Article introuvable." };
     }
 
@@ -179,7 +187,7 @@ export async function removeFromCart(itemId: string) {
 
     revalidatePath("/cart");
     return { success: true, message: "Article retiré du panier." };
-  } catch (error) {
+  } catch {
     return { success: false, message: "Impossible de modifier le panier." };
   }
 }
@@ -209,13 +217,21 @@ export async function clearCart() {
   }
 }
 
-export async function confirmCart(): Promise<{ success: boolean; message: string; bookings?: Booking[] }> {
+export async function confirmCart(): Promise<{
+  success: boolean;
+  message: string;
+  bookings?: Booking[];
+}> {
   try {
     const currentUser = await getCurrentDbUser();
-    
+
     const cart = await prisma.cart.findUnique({
       where: { userId: currentUser.id },
-      include: { items: { include: { offer: { include: { request: true, booking: true } } } } },
+      include: {
+        items: {
+          include: { offer: { include: { request: true, booking: true } } },
+        },
+      },
     });
 
     if (!cart || cart.items.length === 0) {
@@ -223,24 +239,33 @@ export async function confirmCart(): Promise<{ success: boolean; message: string
     }
 
     const validItems = (cart.items as CartItemWithDetails[]).filter(
-      (item: CartItemWithDetails) => !item.offer.booking
+      (item: CartItemWithDetails) => !item.offer.booking,
     );
 
     const createdBookings = await prisma.$transaction(async (tx) => {
       const bookings = [];
       for (const item of validItems) {
         const offer = item.offer;
-        
-        if (offer.request.clientId !== currentUser.id && currentUser.role !== "ADMIN") {
+
+        if (
+          offer.request.clientId !== currentUser.id &&
+          currentUser.role !== "ADMIN"
+        ) {
           throw new Error("Unauthorized");
         }
 
-        await tx.offer.update({ where: { id: offer.id }, data: { status: "ACCEPTED" } });
+        await tx.offer.update({
+          where: { id: offer.id },
+          data: { status: "ACCEPTED" },
+        });
         await tx.offer.updateMany({
           where: { requestId: offer.requestId, id: { not: offer.id } },
           data: { status: "REJECTED" },
         });
-        await tx.serviceRequest.update({ where: { id: offer.requestId }, data: { status: "FILLED" } });
+        await tx.serviceRequest.update({
+          where: { id: offer.requestId },
+          data: { status: "FILLED" },
+        });
 
         const amountSubtotal = offer.price * item.quantity;
         const platformFee = Math.round(amountSubtotal * PLATFORM_FEE_RATE);
@@ -264,7 +289,11 @@ export async function confirmCart(): Promise<{ success: boolean; message: string
 
     revalidatePath("/cart");
     revalidatePath("/dashboard");
-    return { success: true, message: "Panier confirmé.", bookings: createdBookings };
+    return {
+      success: true,
+      message: "Panier confirmé.",
+      bookings: createdBookings,
+    };
   } catch (error) {
     console.error("[CONFIRM_CART_ERROR]", error);
     return { success: false, message: "Échec de la confirmation du panier." };

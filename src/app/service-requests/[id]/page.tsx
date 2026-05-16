@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import { getServiceRequestById } from "@/src/lib/requetes/serviceRequests";
 import { addToCart } from "@/src/action/cart";
 import OfferForm from "@/src/components/offers/OfferForm";
@@ -11,9 +12,12 @@ type PageProps = {
 
 export default async function Page({ params }: PageProps) {
   const { id } = await params;
+  const { userId: clerkId } = await auth();
   const request = await getServiceRequestById(id);
 
   if (!request) notFound();
+
+  const isOwner = clerkId === request.client.clerkId;
 
   return (
     <main className="mx-auto max-w-4xl p-6">
@@ -141,14 +145,12 @@ export default async function Page({ params }: PageProps) {
           </h2>
           <p className="text-sm text-zinc-700 dark:text-zinc-300">
             Statut : <strong>{request.booking.status}</strong> &middot; Total :{" "}
-            <strong>
-              {(request.booking.amountTotal / 100).toFixed(2)} $
-            </strong>
+            <strong>{(request.booking.amountTotal / 100).toFixed(2)} $</strong>
           </p>
         </section>
       )}
 
-      {request.status === "OPEN" && (
+      {request.status === "OPEN" && clerkId && !isOwner && (
         <section className="mt-8">
           <OfferForm requestId={request.id} />
         </section>
