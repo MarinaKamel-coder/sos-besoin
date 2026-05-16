@@ -91,15 +91,12 @@ export default async function Header() {
         <div className="flex items-center gap-3">
           {!userId ? (
             <>
-              <SignInButton>
-                <button className="rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                  Connexion
-                </button>
+              <SignInButton mode="modal">
+                <button className="rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800">Connexion</button>
               </SignInButton>
-              <SignUpButton>
-                <button className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                  Inscription
-                </button>
+              
+              <SignUpButton mode="modal">
+                <button className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Inscription</button>
               </SignUpButton>
             </>
           ) : (
