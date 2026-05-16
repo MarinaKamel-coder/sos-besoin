@@ -26,7 +26,7 @@ export const requestCreateSchema = z.object({
     .regex(/^[a-zA-Z0-9\sÀ-ÿ\-]+$/, "Le titre contient des caractères interdits"), // Validation stricte 
   
   description: z.string()
-    .min(10, "La description doit avoir au moins 10 caractères")
+    .min(5, "La description doit avoir au moins 5 caractères")
     .max(1000, "La description est trop longue")
     .trim(), // Supprime les espaces inutiles en début/fin
 

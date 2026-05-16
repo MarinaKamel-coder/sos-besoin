@@ -16,6 +16,10 @@ export type GetPaginatedServiceRequestsParams = {
     to?: string;   // ISO date string (ex: "2024-12-31")
     sort?: ServiceRequestSortField;
     order?: SortOrder;
+    /** Exclure les demandes dont l'utilisateur est le client (ex. vue prestataire) */
+    excludeClientId?: string;
+    /** Restreindre aux demandes de ce client (vue « mes demandes ») */
+    forClientId?: string;
 };
 
 function clampPage(page: number) {
@@ -101,6 +105,12 @@ export async function getPaginatedServiceRequests(params: GetPaginatedServiceReq
         if (toDate) where.neededAt.lte = toDate;
     }
 
+    if (params.forClientId) {
+        where.clientId = params.forClientId;
+    } else if (params.excludeClientId) {
+        where.clientId = { not: params.excludeClientId };
+    }
+
     //orderBy dynamique (tri)
     const orderBy: Prisma.ServiceRequestOrderByWithRelationInput = { [sortField]: sortOrder };
 
@@ -180,6 +190,8 @@ export type GetCursorPaginatedServiceRequestsParams = {
     take?: number;              // taille de page
     q?: string;
     status?: RequestStatus;
+    excludeClientId?: string;
+    forClientId?: string;
 };
 
 export async function getCursorPaginatedServiceRequests(
@@ -197,6 +209,11 @@ export async function getCursorPaginatedServiceRequests(
         ];
     }
     if (params.status) where.status = params.status;
+    if (params.forClientId) {
+        where.clientId = params.forClientId;
+    } else if (params.excludeClientId) {
+        where.clientId = { not: params.excludeClientId };
+    }
 
     // On prend (take + 1) pour savoir s'il existe une page suivante
     const items = await prisma.serviceRequest.findMany({

@@ -6,11 +6,10 @@ import { z } from "zod";
 export const offerCreateSchema = z.object({
   price: z.coerce
     .number()
-    .positive("Le prix doit être supérieur à 0")
-    .max(10000, "Le prix est trop élevé"),
+    .positive("Le prix doit être supérieur à 0"),
   
   message: z.string()
-    .min(10, "Le message doit avoir au moins 10 caractères")
+    .min(5, "Le message doit avoir au moins 5 caractères")
     .max(500, "Le message est trop long")
     .trim(),
     

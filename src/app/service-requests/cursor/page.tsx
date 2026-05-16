@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
+import prisma from "@/src/lib/prisma";
 import { getCursorPaginatedServiceRequests } from "@/src/lib/requetes/serviceRequests";
 import { RequestStatus } from "@/src/generated/prisma/client";
 
@@ -29,10 +31,28 @@ export default async function Page({
 }) {
     const params = await searchParams;
 
+    const { userId } = await auth();
+    let excludeClientId: string | undefined;
+    let forClientId: string | undefined;
+    if (userId) {
+        const dbUser = await prisma.user.findUnique({
+            where: { clerkId: userId },
+            select: { id: true, role: true },
+        });
+        if (dbUser?.role === "PROVIDER") {
+            excludeClientId = dbUser.id;
+        }
+        if (dbUser?.role === "CLIENT") {
+            forClientId = dbUser.id;
+        }
+    }
+
     const { items, meta } = await getCursorPaginatedServiceRequests({
         cursor: params.cursor,
         q: params.q,
         status: parseStatus(params.status),
+        excludeClientId,
+        forClientId,
     });
 
     // Construit l'URL pour la page suivante (en preservant les filtres)
@@ -54,7 +74,11 @@ export default async function Page({
     return (
         <main className="p-6 max-w-5xl mx-auto">
             <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold">Demandes urgentes (pagination par curseur)</h1>
+                <h1 className="text-2xl font-bold">
+                    {forClientId
+                        ? "Mes demandes (pagination curseur)"
+                        : "Demandes urgentes (pagination par curseur)"}
+                </h1>
                 <Link
                     href="/service-requests"
                     className="text-sm text-blue-600 hover:underline"
@@ -62,6 +86,18 @@ export default async function Page({
                     Voir la version par offset →
                 </Link>
             </div>
+
+            {forClientId && (
+                <p className="text-sm text-gray-600 dark:text-zinc-400 mb-3 rounded border border-blue-200 bg-blue-50 px-3 py-2 dark:border-blue-800 dark:bg-blue-900/20">
+                    Liste restreinte à vos propres demandes.
+                </p>
+            )}
+
+            {excludeClientId && (
+                <p className="text-sm text-gray-600 dark:text-zinc-400 mb-3 rounded border border-green-200 bg-green-50 px-3 py-2 dark:border-green-800 dark:bg-green-900/20">
+                    Vue prestataire : vos propres demandes ne figurent pas dans cette liste.
+                </p>
+            )}
 
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-900">
                 <strong>Mode CURSEUR.</strong> Cette page utilise{" "}

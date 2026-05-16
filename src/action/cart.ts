@@ -127,9 +127,6 @@ export async function addToCart(offerId: string) {
     requestIdSchema.parse(offerId);
 
     const currentUser = await getCurrentDbUser();
-    if (currentUser.role !== "CLIENT" && currentUser.role !== "ADMIN") {
-      return { success: false, message: "Action non autorisée." };
-    }
 
     const offer = await prisma.offer.findUnique({
       where: { id: offerId },
@@ -297,5 +294,57 @@ export async function confirmCart(): Promise<{
   } catch (error) {
     console.error("[CONFIRM_CART_ERROR]", error);
     return { success: false, message: "Échec de la confirmation du panier." };
+  }
+}
+export async function handlePostPaymentSuccess(bookingId: string, offerId: string) {
+  try {
+    const currentUser = await getCurrentDbUser();
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Confirmer définitivement la réservation
+      await tx.booking.update({
+        where: { id: bookingId },
+        data: { status: "CONFIRMED" },
+      });
+
+      // 2. Accepter l'offre sélectionnée
+      await tx.offer.update({
+        where: { id: offerId },
+        data: { status: "ACCEPTED" },
+      });
+
+      // 3. Rejeter automatiquement les autres offres concurrentes pour cette même demande
+      const targetOffer = await tx.offer.findUnique({ where: { id: offerId } });
+      if (targetOffer) {
+        await tx.offer.updateMany({
+          where: { requestId: targetOffer.requestId, id: { not: offerId } },
+          data: { status: "REJECTED" },
+        });
+
+        // 4. Marquer la demande de service comme pourvue
+        await tx.serviceRequest.update({
+          where: { id: targetOffer.requestId },
+          data: { status: "FILLED" },
+        });
+      }
+
+      // 5. Vider le panier de l'utilisateur
+      const cart = await tx.cart.findUnique({ where: { userId: currentUser.id } });
+      if (cart) {
+        await tx.cartItem.deleteMany({
+          where: { cartId: cart.id },
+        });
+      }
+    });
+
+    // On force Next.js à recalculer le layout, le header (CartCount) et le panier
+    revalidatePath("/", "layout"); 
+    revalidatePath("/cart");
+    revalidatePath("/service-requests");
+
+    return { success: true };
+  } catch (error) {
+    console.error("[POST_PAYMENT_SUCCESS_ERROR]", error);
+    return { success: false, message: "Erreur lors de la mise à jour post-paiement." };
   }
 }

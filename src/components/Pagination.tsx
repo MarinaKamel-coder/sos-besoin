@@ -1,11 +1,9 @@
 import Link from "next/link";
 
-// Les "props" = les informations que le composant reçoit de l'extérieur
 type PaginationProps = {
-  currentPage: number;   // Page affichée actuellement (ex: 2)
-  totalPages: number;    // Nombre total de pages (ex: 5)
-  basePath: string;      // URL de base (ex: "/service-requests")
-  // extraParams permet de conserver les autres filtres dans l'URL (ex: q=urgent&status=OPEN)
+  currentPage: number;
+  totalPages: number;
+  basePath: string;
   extraParams?: Record<string, string | undefined>;
 };
 
@@ -15,11 +13,8 @@ export default function Pagination({
   basePath,
   extraParams = {},
 }: PaginationProps) {
-  // Si une seule page (ou moins), inutile d'afficher la pagination
   if (totalPages <= 1) return null;
 
-  // Fonction qui construit l'URL pour une page donnée
-  // Elle ajoute aussi les filtres actuels (q, status, etc.) pour ne pas les perdre en changeant de page
   const buildPageUrl = (page: number) => {
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(extraParams)) {
@@ -31,7 +26,6 @@ export default function Pagination({
     return `${basePath}?${params.toString()}`;
   };
 
-  // Génération de la liste [1, 2, 3, ..., totalPages]
   const pageNumbers: number[] = [];
   for (let i = 1; i <= totalPages; i++) {
     pageNumbers.push(i);
@@ -40,57 +34,65 @@ export default function Pagination({
   const hasPrevious = currentPage > 1;
   const hasNext = currentPage < totalPages;
 
+  const baseButtonClass = "inline-flex items-center justify-center h-8 px-3 rounded-lg border text-xs font-medium transition-all duration-150 select-none";
+  const activeButtonClass = "bg-blue-500/10 text-blue-400 border-blue-500/30 font-bold";
+  const inactiveButtonClass = "bg-slate-900/40 border-slate-900 text-slate-400 hover:border-slate-800 hover:text-slate-200 hover:bg-slate-900/60";
+  const disabledButtonClass = "border-slate-900/50 text-slate-600 opacity-30 cursor-not-allowed";
+
   return (
-    <nav
-      aria-label="Pagination"
-      className="flex items-center justify-center gap-2 mt-6"
-    >
-      {/* Bouton "Précédent" : actif si on n'est pas sur la 1re page */}
+    <nav aria-label="Pagination" className="flex items-center justify-center gap-1.5 w-full">
+      
+      {/* Bouton Précédent */}
       {hasPrevious ? (
-        <Link
-          href={buildPageUrl(currentPage - 1)}
-          className="px-3 py-1 border rounded hover:bg-gray-100"
-        >
-          ← Précédent
+        <Link href={buildPageUrl(currentPage - 1)} className={`${baseButtonClass} ${inactiveButtonClass} gap-1`}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+          <span>Précédent</span>
         </Link>
       ) : (
-        <span className="px-3 py-1 border rounded text-gray-400 cursor-not-allowed">
-          ← Précédent
+        <span className={`${baseButtonClass} ${disabledButtonClass} gap-1`}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+          <span>Précédent</span>
         </span>
       )}
 
-      {/* Numéros de page : la page active est mise en surbrillance */}
-      {pageNumbers.map((page) => {
-        const isActive = page === currentPage;
-        return (
-          <Link
-            key={page}
-            href={buildPageUrl(page)}
-            aria-current={isActive ? "page" : undefined}
-            className={
-              isActive
-                ? "px-3 py-1 border rounded bg-blue-600 text-white"
-                : "px-3 py-1 border rounded hover:bg-gray-100"
-            }
-          >
-            {page}
-          </Link>
-        );
-      })}
+      {/* Numéros de page défilants */}
+      <div className="flex items-center gap-1">
+        {pageNumbers.map((page) => {
+          const isActive = page === currentPage;
+          return (
+            <Link
+              key={page}
+              href={buildPageUrl(page)}
+              aria-current={isActive ? "page" : undefined}
+              className={`${baseButtonClass} w-8 !px-0 ${isActive ? activeButtonClass : inactiveButtonClass}`}
+            >
+              {page}
+            </Link>
+          );
+        })}
+      </div>
 
-      {/* Bouton "Suivant" : actif si on n'est pas sur la dernière page */}
+      {/* Bouton Suivant */}
       {hasNext ? (
-        <Link
-          href={buildPageUrl(currentPage + 1)}
-          className="px-3 py-1 border rounded hover:bg-gray-100"
-        >
-          Suivant →
+        <Link href={buildPageUrl(currentPage + 1)} className={`${baseButtonClass} ${inactiveButtonClass} gap-1`}>
+          <span>Suivant</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
         </Link>
       ) : (
-        <span className="px-3 py-1 border rounded text-gray-400 cursor-not-allowed">
-          Suivant →
+        <span className={`${baseButtonClass} ${disabledButtonClass} gap-1`}>
+          <span>Suivant</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
         </span>
       )}
+      
     </nav>
   );
 }
