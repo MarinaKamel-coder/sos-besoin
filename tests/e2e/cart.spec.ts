@@ -2,26 +2,26 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Panier', () => {
 
-    test('affiche la page du panier', async ({ page }) => {
-        await page.goto('/cart');
-        await expect(page).not.toHaveURL(/cart/);
-    });
+  // Le panier est une route protégée : un utilisateur non authentifié doit être
+  // redirigé vers la page de connexion Clerk.
+  test('redirige vers la connexion si non authentifié', async ({ page }) => {
+    await page.goto('/cart');
+    await expect(page).toHaveURL(/sign-in/);
+  });
 
-    test('panier vide affiche un message', async ({ page }) => {
-        await page.goto('/cart');
-        const empty = page.getByText(/panier|vide|aucun/i);
-        await expect(empty).toBeVisible();
-    });
+  // Les deux tests suivants nécessitent une session Clerk authentifiée.
+  // Configurer un storageState dans playwright.config.ts pour les activer.
 
-    test('bouton payer est visible si panier non vide', async ({ page }) => {
-        await page.goto('/list-offers');
-        const addButton = page.getByRole('button', { name: /ajouter|panier/i }).first();
+  test('panier vide affiche un message', async ({ page }) => {
+    test.skip();
+    await page.goto('/cart');
+    await expect(page.getByText('Votre panier est vide.')).toBeVisible();
+  });
 
-        if (await addButton.isVisible()) {
-            await addButton.click();
-            await page.goto('/cart');
-            const payButton = page.getByRole('button', { name: /payer/i });
-            await expect(payButton).toBeVisible();
-        }
-    });
+  test('bouton Payer avec Stripe est visible si panier non vide', async ({ page }) => {
+    test.skip();
+    await page.goto('/cart');
+    const payButton = page.getByRole('button', { name: 'Payer avec Stripe' });
+    await expect(payButton).toBeVisible();
+  });
 });
