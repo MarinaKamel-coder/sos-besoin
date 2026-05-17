@@ -1,8 +1,15 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { createRequestAction, updateRequestAction } from "../../action/requestActions";
-import { RequestUpdateInput, RequestCreateInput, ActionState } from "../../schemas/request";
+import {
+  createRequestAction,
+  updateRequestAction,
+} from "../../action/requestActions";
+import {
+  RequestUpdateInput,
+  RequestCreateInput,
+  ActionState,
+} from "../../schemas/request";
 
 interface Category {
   id: string;
@@ -23,7 +30,9 @@ export default function RequestForm({
   categories,
 }: RequestFormProps) {
   const isEdit = !!initialData?.id;
-  const [selectedCategory, setSelectedCategory] = useState(initialData?.categoryId ?? "");
+  const [selectedCategory, setSelectedCategory] = useState(
+    initialData?.categoryId ?? "",
+  );
   const [newCategoryName, setNewCategoryName] = useState("");
 
   const actionWrapper = async (
@@ -73,7 +82,10 @@ export default function RequestForm({
 
       {/* Titre */}
       <div className="space-y-2">
-        <label htmlFor="title" className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+        <label
+          htmlFor="title"
+          className="block text-xs font-bold uppercase tracking-wider text-slate-400"
+        >
           Titre de la demande
         </label>
         <input
@@ -83,17 +95,24 @@ export default function RequestForm({
           defaultValue={initialData?.title}
           placeholder="Ex: Réparation plomberie sous évier cuisine"
           className={`w-full px-4 py-3 bg-slate-950/40 border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 ${
-            state.errors?.title ? "border-rose-500/50 bg-rose-500/5" : "border-slate-800"
+            state.errors?.title
+              ? "border-rose-500/50 bg-rose-500/5"
+              : "border-slate-800"
           }`}
         />
         {state.errors?.title && (
-          <p className="text-rose-400 text-xs font-medium pl-1">{state.errors.title[0]}</p>
+          <p className="text-rose-400 text-xs font-medium pl-1">
+            {state.errors.title[0]}
+          </p>
         )}
       </div>
 
       {/* Description */}
       <div className="space-y-2">
-        <label htmlFor="description" className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+        <label
+          htmlFor="description"
+          className="block text-xs font-bold uppercase tracking-wider text-slate-400"
+        >
           Description détaillée
         </label>
         <textarea
@@ -103,11 +122,15 @@ export default function RequestForm({
           defaultValue={initialData?.description}
           placeholder="Détaillez au maximum votre besoin (matériel disponible, accès, contraintes)..."
           className={`w-full px-4 py-3 bg-slate-950/40 border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 resize-none ${
-            state.errors?.description ? "border-rose-500/50 bg-rose-500/5" : "border-slate-800"
+            state.errors?.description
+              ? "border-rose-500/50 bg-rose-500/5"
+              : "border-slate-800"
           }`}
         ></textarea>
         {state.errors?.description && (
-          <p className="text-rose-400 text-xs font-medium pl-1">{state.errors.description[0]}</p>
+          <p className="text-rose-400 text-xs font-medium pl-1">
+            {state.errors.description[0]}
+          </p>
         )}
       </div>
 
@@ -115,7 +138,10 @@ export default function RequestForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Date */}
         <div className="space-y-2">
-          <label htmlFor="neededAt" className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+          <label
+            htmlFor="neededAt"
+            className="block text-xs font-bold uppercase tracking-wider text-slate-400"
+          >
             Date d&apos;exécution souhaitée
           </label>
           <input
@@ -128,17 +154,24 @@ export default function RequestForm({
                 : ""
             }
             className={`w-full px-4 py-3 bg-slate-950/40 border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 ${
-              state.errors?.neededAt ? "border-rose-500/50 bg-rose-500/5" : "border-slate-800"
+              state.errors?.neededAt
+                ? "border-rose-500/50 bg-rose-500/5"
+                : "border-slate-800"
             }`}
           />
           {state.errors?.neededAt && (
-            <p className="text-rose-400 text-xs font-medium pl-1">{state.errors.neededAt[0]}</p>
+            <p className="text-rose-400 text-xs font-medium pl-1">
+              {state.errors.neededAt[0]}
+            </p>
           )}
         </div>
 
         {/* Lieu */}
         <div className="space-y-2">
-          <label htmlFor="location" className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+          <label
+            htmlFor="location"
+            className="block text-xs font-bold uppercase tracking-wider text-slate-400"
+          >
             Lieu / Ville
           </label>
           <input
@@ -148,18 +181,25 @@ export default function RequestForm({
             defaultValue={initialData?.location || ""}
             placeholder="Ex: Longueuil"
             className={`w-full px-4 py-3 bg-slate-950/40 border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 ${
-              state.errors?.location ? "border-rose-500/50 bg-rose-500/5" : "border-slate-800"
+              state.errors?.location
+                ? "border-rose-500/50 bg-rose-500/5"
+                : "border-slate-800"
             }`}
           />
           {state.errors?.location && (
-            <p className="text-rose-400 text-xs font-medium pl-1">{state.errors.location[0]}</p>
+            <p className="text-rose-400 text-xs font-medium pl-1">
+              {state.errors.location[0]}
+            </p>
           )}
         </div>
       </div>
 
       {/* Catégorie */}
       <div className="space-y-2">
-        <label htmlFor="categoryId" className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+        <label
+          htmlFor="categoryId"
+          className="block text-xs font-bold uppercase tracking-wider text-slate-400"
+        >
           Secteur d&apos;activité / Catégorie
         </label>
         <select
@@ -168,19 +208,36 @@ export default function RequestForm({
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
           className={`w-full px-4 py-3 bg-slate-950/40 border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 appearance-none ${
-            state.errors?.categoryId ? "border-rose-500/50 bg-rose-500/5" : "border-slate-800"
+            state.errors?.categoryId
+              ? "border-rose-500/50 bg-rose-500/5"
+              : "border-slate-800"
           }`}
-          style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%2394a3b8\'%3e%3cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/%3e%3c/svg%3e")', backgroundPosition: 'right 1rem center', backgroundSize: '1.25rem', backgroundRepeat: 'no-repeat' }}
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3e%3c/svg%3e\")",
+            backgroundPosition: "right 1rem center",
+            backgroundSize: "1.25rem",
+            backgroundRepeat: "no-repeat",
+          }}
         >
           <option value="" disabled className="bg-slate-900 text-slate-400">
             Sélectionner une catégorie
           </option>
           {categories.map((cat) => (
-            <option key={cat.id} value={cat.id} className="bg-slate-900 text-slate-100">
+            <option
+              key={cat.id}
+              value={cat.id}
+              className="bg-slate-900 text-slate-100"
+            >
               {cat.name}
             </option>
           ))}
-          <option value="autre" className="bg-slate-900 text-blue-400 font-bold">+ Autre (Créer une nouvelle catégorie)</option>
+          <option
+            value="autre"
+            className="bg-slate-900 text-blue-400 font-bold"
+          >
+            + Autre (Créer une nouvelle catégorie)
+          </option>
         </select>
 
         {selectedCategory === "autre" && (
@@ -194,13 +251,17 @@ export default function RequestForm({
               className="w-full px-4 py-2.5 bg-slate-950/60 border border-blue-500/30 rounded-lg text-sm text-white focus:border-blue-500 outline-none transition-all"
             />
             <p className="text-[11px] text-slate-500 leading-normal pl-0.5">
-              💡 Note : Cette catégorie sera ajoutée à la base globale et deviendra accessible instantanément pour l&apos;ensemble de la communauté.
+              💡 Note : Cette catégorie sera ajoutée à la base globale et
+              deviendra accessible instantanément pour l&apos;ensemble de la
+              communauté.
             </p>
           </div>
         )}
 
         {state.errors?.categoryId && (
-          <p className="text-rose-400 text-xs font-medium pl-1">{state.errors.categoryId[0]}</p>
+          <p className="text-rose-400 text-xs font-medium pl-1">
+            {state.errors.categoryId[0]}
+          </p>
         )}
       </div>
 
@@ -217,16 +278,31 @@ export default function RequestForm({
         >
           {isPending ? (
             <span className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-4 w-4 text-slate-500" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              <svg
+                className="animate-spin h-4 w-4 text-slate-500"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
               </svg>
               Traitement sécurisé...
             </span>
           ) : isEdit ? (
             "Enregistrer les modifications"
           ) : (
-            "Soumettre l&apos;appel d&apos;offre"
+            "Soumettre l'appel d'offre"
           )}
         </button>
       </div>
@@ -240,8 +316,12 @@ export default function RequestForm({
               : "bg-rose-500/5 border-rose-500/20 text-rose-400"
           }`}
         >
-          <span className="text-base leading-none mt-0.5">{state.success ? "✓" : "⚠️"}</span>
-          <p className="text-xs font-semibold tracking-wide leading-normal">{state.message}</p>
+          <span className="text-base leading-none mt-0.5">
+            {state.success ? "✓" : "⚠️"}
+          </span>
+          <p className="text-xs font-semibold tracking-wide leading-normal">
+            {state.message}
+          </p>
         </div>
       )}
     </form>
