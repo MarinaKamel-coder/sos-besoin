@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function SetupRolePage() {
+function SetupRoleContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -63,3 +63,21 @@ export default function SetupRolePage() {
     </div>
   );
 }
+
+export default function SetupRolePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 py-32 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            Chargement...
+          </p>
+        </div>
+      }
+    >
+      <SetupRoleContent />
+    </Suspense>
+  );
+}
+
