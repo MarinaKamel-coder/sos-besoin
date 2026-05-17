@@ -1,27 +1,36 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Panier', () => {
+/**
+ * Tests E2E — Sécurité et protection du panier
+ *
+ * Le panier contient des offres acceptées prêtes au paiement. Aucune
+ * information ne doit être accessible à un utilisateur non authentifié,
+ * et la redirection doit préserver l'intention de l'utilisateur.
+ */
+test.describe('Panier — Sécurité et redirection', () => {
 
-    test('affiche la page du panier', async ({ page }) => {
-        await page.goto('/cart');
-        await expect(page).not.toHaveURL(/cart/);
-    });
+  test('un visiteur non-authentifié ne peut pas accéder au panier', async ({ page }) => {
+    // Tentative d'accès direct par un visiteur anonyme : le middleware
+    // doit intercepter et rediriger vers la page de connexion.
+    await page.goto('/cart');
+    await expect(page).toHaveURL(/\/sign-in/);
+  });
 
-    test('panier vide affiche un message', async ({ page }) => {
-        await page.goto('/cart');
-        const empty = page.getByText(/panier|vide|aucun/i);
-        await expect(empty).toBeVisible();
-    });
+  test('la redirection vers /sign-in contient redirect_url=/cart', async ({ page }) => {
+    // Continuité d'UX : après connexion, l'utilisateur doit retrouver
+    // exactement le panier qu'il essayait d'ouvrir.
+    await page.goto('/cart');
+    await expect(page).toHaveURL(/redirect_url=.*cart/);
+  });
 
-    test('bouton payer est visible si panier non vide', async ({ page }) => {
-        await page.goto('/list-offers');
-        const addButton = page.getByRole('button', { name: /ajouter|panier/i }).first();
+  test('aucune donnée sensible du panier ne fuit dans la réponse HTML', async ({ page }) => {
+    // Vérification de sécurité : la page renvoyée à un visiteur anonyme
+    // (la page de connexion suite à redirect) ne doit pas exposer de
+    // contenu interne (montants, identifiants Prisma, références d'offre).
+    const response = await page.goto('/cart');
+    const html = (await response?.text()) ?? '';
+    expect(html).not.toMatch(/amountTotal/);
+    expect(html).not.toMatch(/offerId.*cmp[a-z0-9]+/i); // pas d'IDs CUID Prisma
+  });
 
-        if (await addButton.isVisible()) {
-            await addButton.click();
-            await page.goto('/cart');
-            const payButton = page.getByRole('button', { name: /payer/i });
-            await expect(payButton).toBeVisible();
-        }
-    });
 });

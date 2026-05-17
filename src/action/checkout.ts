@@ -84,13 +84,17 @@ export async function createCheckoutSession() {
     }));
 
     // 5. Créer la session Stripe avec les BONNES variables dans l'URL de succès 🔥
+    const baseUrl = 
+        process.env.APP_URL ??
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
     const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'], 
         line_items: lineItems, 
         mode: 'payment', 
-        // ICI : On ajoute booking_id et offer_id pour que ta SuccessPage puisse bosser !
-        success_url: `${process.env.APP_URL}/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${booking.id}&offer_id=${offer.id}`,
-        cancel_url: `${process.env.APP_URL}/cart`,
+        // ICI : On ajoute booking_id et offer_id pour que ta SuccessPage puisse bosser !               
+        success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${booking.id}&offer_id=${offer.id}`,
+        cancel_url: `${baseUrl}/cart`,
         metadata: {
             userId: user.id, 
             cartId: user.cart.id,
