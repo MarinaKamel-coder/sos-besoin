@@ -5,6 +5,8 @@ import {
 } from "../../action/cart";
 import { createCheckoutSession } from "../../action/checkout";
 
+export const dynamic = "force-dynamic";
+
 export default async function CartPage() {
   const cart = await getCart();
 
