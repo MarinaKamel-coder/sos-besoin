@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
 import { getCartCount } from "../action/cart";
 import prisma from "@/src/lib/prisma";
 
@@ -160,17 +160,27 @@ export default async function Header() {
         <div className="flex items-center gap-3">
           {!userId ? (
             <div className="flex items-center gap-2">
-              <SignInButton mode="modal">
-                <button className="rounded-xl px-4 py-2 text-s font-bold text-slate-400 hover:text-white hover:bg-slate-900/50 transition-all duration-200">
-                  Connexion
-                </button>
-              </SignInButton>
+              {/*
+                FIX : SignInButton/SignUpButton de @clerk/nextjs@7 ne supportent
+                plus l'imbrication d'un <button> enfant comme dans la v6.
+                L'erreur "multiple children components" cassait la page (HTTP 500)
+                pour tout visiteur non-authentifié, empêchant l'exécution des
+                tests Playwright en CI. Remplacés par <Link> vers les pages
+                /sign-in et /sign-up (catch-all Clerk déjà configurées).
+              */}
+              <Link
+                href="/sign-in"
+                className="rounded-xl px-4 py-2 text-s font-bold text-slate-400 hover:text-white hover:bg-slate-900/50 transition-all duration-200"
+              >
+                Connexion
+              </Link>
 
-              <SignUpButton mode="modal">
-                <button className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-s font-bold text-white hover:from-blue-500 hover:to-indigo-500 shadow-md shadow-blue-500/10 transition-all duration-200 active:scale-[0.98]">
-                  Inscription
-                </button>
-              </SignUpButton>
+              <Link
+                href="/sign-up"
+                className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-s font-bold text-white hover:from-blue-500 hover:to-indigo-500 shadow-md shadow-blue-500/10 transition-all duration-200 active:scale-[0.98]"
+              >
+                Inscription
+              </Link>
             </div>
           ) : (
             <div className="flex items-center gap-2.5 bg-slate-900/30 border border-slate-900/80 rounded-xl p-1.5 pr-2.5 shadow-inner">
