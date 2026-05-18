@@ -1,8 +1,6 @@
 import prisma from "@/src/lib/prisma";
 import { RequestStatus, Prisma, BookingStatus } from "@/src/generated/prisma/client";
 
-
-
 export const ITEMS_PER_PAGE = 10;
 
 export type ServiceRequestSortField = "createdAt" | "updatedAt" | "neededAt" | "title";
@@ -20,6 +18,12 @@ export type GetPaginatedServiceRequestsParams = {
     excludeClientId?: string;
     /** Restreindre aux demandes de ce client (vue « mes demandes ») */
     forClientId?: string;
+    /** Filtre d'état spécifique (ex: "my-offers") */
+    filter?: string;    
+    /** Identifiant ou filtre de catégorie */
+    category?: string;    
+    /** ID de l'utilisateur en BDD (nécessaire pour filtrer "my-offers" via le providerId) */
+    currentDbUserId?: string; 
 };
 
 function clampPage(page: number) {
@@ -91,7 +95,7 @@ export async function getPaginatedServiceRequests(params: GetPaginatedServiceReq
     if (q) {
         where.OR = [
             { title: { contains: q, mode: "insensitive" } },
-            { description: {contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
         ];
     }
 
@@ -111,6 +115,24 @@ export async function getPaginatedServiceRequests(params: GetPaginatedServiceReq
         where.clientId = { not: params.excludeClientId };
     }
 
+    //  1. Filtrage par Catégorie (s'adapte à ta table de liaison `categories`)
+    if (params.category) {
+        where.categories = {
+            some: {
+                categoryId: params.category,
+            },
+        };
+    }
+
+    // 2. Filtrage par "Mes propositions" (Le prestataire a soumis une offre)
+    if (params.filter === "my-offers" && params.currentDbUserId) {
+        where.offers = {
+            some: {
+                providerId: params.currentDbUserId,
+            },
+        };
+    }
+
     //orderBy dynamique (tri)
     const orderBy: Prisma.ServiceRequestOrderByWithRelationInput = { [sortField]: sortOrder };
 
@@ -123,7 +145,7 @@ export async function getPaginatedServiceRequests(params: GetPaginatedServiceReq
             include: {
                 client: true, 
                 categories: { include: { category: true }}, 
-                _count: { select: { offers: true }},  // utile pour UI: nb offres
+                _count: { select: { offers: true }},
             }, 
         }), 
         prisma.serviceRequest.count({ where }), 
@@ -151,8 +173,6 @@ export async function getServiceRequestStats() {
         _count: { _all: true }, 
     });
 
-    //Exemple de sortie facile a afficher:
-    // { OPEN: 12, FILLED: 3, CANCELLED: 1, HIDDEN: 0}
     const countsByStatus: Record<RequestStatus, number> = {
         OPEN: 0, 
         FILLED: 0, 
@@ -169,25 +189,13 @@ export async function getServiceRequestStats() {
         raw: grouped,
     };
 }
+
 /**
- * BONUS - Pagination par CURSEUR (cursor-based pagination)
- *
- * Au lieu de SKIP/TAKE (offset), on utilise un "curseur" = l'identifiant du
- * dernier element de la page precedente. Prisma applique alors un WHERE
- * (id <= cursor) au lieu d'un OFFSET, ce qui evite a Postgres de scanner et
- * d'ignorer les N premieres lignes.
- *
- * Avantages:
- *  - Performance constante meme sur des millions de lignes (pas de OFFSET).
- *  - Pas de "duplication" si une ligne est inseree pendant la navigation.
- *
- * Inconvenients:
- *  - Pas d'acces direct a une page N (uniquement suivante/precedente).
- *  - Le curseur doit etre un champ unique et stable (ici: id cuid).
+ * Pagination par CURSEUR (cursor-based pagination)
  */
 export type GetCursorPaginatedServiceRequestsParams = {
-    cursor?: string;            // id de la derniere demande de la page precedente
-    take?: number;              // taille de page
+    cursor?: string;
+    take?: number;
     q?: string;
     status?: RequestStatus;
     excludeClientId?: string;
@@ -200,7 +208,6 @@ export async function getCursorPaginatedServiceRequests(
     const take = params.take && params.take > 0 ? Math.min(params.take, 50) : ITEMS_PER_PAGE;
     const q = (params.q ?? "").trim();
 
-    // where dynamique (memes filtres que l'offset, pour comparaison juste)
     const where: Prisma.ServiceRequestWhereInput = {};
     if (q) {
         where.OR = [
@@ -215,11 +222,9 @@ export async function getCursorPaginatedServiceRequests(
         where.clientId = { not: params.excludeClientId };
     }
 
-    // On prend (take + 1) pour savoir s'il existe une page suivante
     const items = await prisma.serviceRequest.findMany({
         where,
         take: take + 1,
-        // skip:1 sert a NE PAS reinclure l'item designe par le cursor
         ...(params.cursor
             ? {
                   cursor: { id: params.cursor },
@@ -228,7 +233,7 @@ export async function getCursorPaginatedServiceRequests(
             : {}),
         orderBy: [
             { createdAt: "desc" },
-            { id: "desc" }, // tie-breaker stable
+            { id: "desc" },
         ],
         include: {
             client: true,
@@ -253,17 +258,13 @@ export async function getCursorPaginatedServiceRequests(
     };
 }
 
-    /**
-     * Agregation globale: stats du marketplace
-     * Utilise aggregate() avec _count, _avg, _min, _max et _sum
-     */
+/**
+ * Agregation globale: stats du marketplace
+ */
 export async function getMarketplaceStats() {
-    // Promise.all pour exécuter les 3 requêtes en parallèle
     const [totalRequests, offerStats, bookingSum] = await Promise.all([
-        // 1. Nombre total de demandes, tous statuts confondus
         prisma.serviceRequest.count(),
 
-        // 2. Stats sur les offres: moyenne, min, max du prix + total
         prisma.offer.aggregate({
             _count: { _all: true },
             _avg: { price: true },
@@ -271,7 +272,6 @@ export async function getMarketplaceStats() {
             _max: { price: true },
         }),
 
-        // 3. Volume total (en cents) des bookings CONFIRMED
         prisma.booking.aggregate({
             where: { status: BookingStatus.CONFIRMED },
             _sum: { amountTotal: true },
