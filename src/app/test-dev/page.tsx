@@ -9,67 +9,79 @@ export default function DevPage() {
   }
 
   return (
-    <main className="mx-auto max-w-lg p-8">
-      <div className="mb-6 rounded-lg border border-yellow-400 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:border-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-300">
+    <main className="mx-auto max-w-xl p-6 text-slate-100 bg-transparent min-h-screen space-y-6">
+      
+      {/* Alerte Mode Dev Néon */}
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs font-bold uppercase tracking-wider text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.05)]">
         ⚠️ Page de développement — non accessible en production
       </div>
 
-      <h1 className="mb-2 text-2xl font-bold">Outils de dev</h1>
-      <p className="mb-8 text-sm text-zinc-500 dark:text-zinc-400">
-        Ces actions ne touchent que <strong>vos propres données</strong>. Les
-        autres utilisateurs ne sont pas affectés.
-      </p>
+      {/* Titre et introduction */}
+      <div className="space-y-1.5 border-b border-white/5 pb-4">
+        <h1 className="text-2xl font-black text-white tracking-tight sm:text-3xl">
+          Outils de développement
+        </h1>
+        <p className="text-xs text-slate-400 leading-relaxed font-medium">
+          Ces actions destructives et d'initialisation ne touchent que{" "}
+          <strong className="text-slate-200 font-bold">vos propres données</strong>. 
+          Les profils et enregistrements des autres utilisateurs ne sont pas affectés.
+        </p>
+      </div>
 
       <div className="space-y-4">
-        {/* Réinitialiser les données de test */}
-        <div className="rounded-xl border p-5">
-          <h2 className="font-semibold">Réinitialiser mes données de test</h2>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Supprime vos demandes, offres et panier actuels, puis recrée 2
-            demandes (déménagement + guitariste) avec 3 offres PENDING prêtes à
-            tester.
-          </p>
+        
+        {/* Section Action : Réinitialisation */}
+        <div className="cyber-card rounded-2xl p-5 space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-sm font-black uppercase tracking-wider text-white">
+              Réinitialiser mes données de test
+            </h2>
+            <p className="text-xs text-slate-400 font-medium leading-relaxed">
+              Supprime l'intégralité de vos demandes, offres et panier actuels dans la base de données, 
+              puis recrée automatiquement 2 demandes (déménagement + guitariste) associées à 3 offres 
+              <code className="bg-white/5 px-1 py-0.5 rounded text-purple-400 ml-1 font-mono">PENDING</code> prêtes à être testées.
+            </p>
+          </div>
+          
           <form
             action={async () => {
               "use server";
               await resetMyTestData();
               redirect("/list-offers");
             }}
-            className="mt-4"
           >
             <button
               type="submit"
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-all active:scale-[0.98]"
             >
               Réinitialiser et aller aux offres →
             </button>
           </form>
         </div>
 
-        {/* Liens rapides */}
-        <div className="rounded-xl border p-5">
-          <h2 className="font-semibold">Liens rapides</h2>
-          <div className="mt-3 flex flex-wrap gap-2 text-sm">
-            <Link
-              href="/list-offers"
-              className="rounded border px-3 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            >
-              /list-offers
-            </Link>
-            <Link
-              href="/cart"
-              className="rounded border px-3 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            >
-              /cart
-            </Link>
-            <Link
-              href="/service-requests"
-              className="rounded border px-3 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            >
-              /service-requests
-            </Link>
+        {/* Section Liens rapides */}
+        <div className="cyber-card rounded-2xl p-5 space-y-3">
+          <h2 className="text-sm font-black uppercase tracking-wider text-white">
+            Liens rapides du routeur
+          </h2>
+          
+          <div className="flex flex-wrap gap-2 pt-1">
+            {[
+              { href: "/list-offers", label: "/list-offers" },
+              { href: "/cart", label: "/cart" },
+              { href: "/service-requests", label: "/service-requests" },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="rounded-xl border border-white/5 bg-white/[0.01] px-3 py-2 text-xs font-mono text-slate-400 hover:text-purple-400 hover:border-purple-500/30 hover:bg-purple-500/5 transition-all duration-200"
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
         </div>
+
       </div>
     </main>
   );

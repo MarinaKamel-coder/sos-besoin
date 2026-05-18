@@ -18,7 +18,7 @@ async function CartCount() {
   return (
     <Link
       href="/cart"
-      className="relative flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-300 hover:bg-slate-900 hover:text-white transition-all duration-200"
+      className="relative flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -26,7 +26,7 @@ async function CartCount() {
         viewBox="0 0 24 24"
         strokeWidth={1.8}
         stroke="currentColor"
-        className="h-4 w-4 text-slate-400 group-hover:text-white"
+        className="h-4 w-4 text-slate-400 group-hover:text-cyber-purple transition-colors"
       >
         <path
           strokeLinecap="round"
@@ -36,7 +36,7 @@ async function CartCount() {
       </svg>
       <span>Panier</span>
       {count > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-[9px] font-black text-white ring-2 ring-slate-950 animate-fade-in">
+        <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-gradient-to-r from-cyber-purple to-cyber-magenta text-[9px] font-black text-white ring-2 ring-[#060212] shadow-[0_0_10px_rgba(109,40,217,0.5)] animate-fade-in">
           {count}
         </span>
       )}
@@ -57,22 +57,22 @@ async function UserRoleBadge() {
   const roleConfig: Record<string, { label: string; color: string }> = {
     CLIENT: { 
       label: "👤 Client", 
-      color: "bg-blue-500/10 border-blue-500/20 text-blue-400" 
+      color: "bg-white/5 border-white/10 text-slate-300" 
     },
     PROVIDER: {
-      label: "🔧 Provider",
-      color: "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
+      label: "🔧 Pro",
+      color: "bg-cyber-purple/10 border-cyber-purple/30 text-purple-300 shadow-[0_0_12px_rgba(109,40,217,0.1)]",
     },
     ADMIN: { 
       label: "🔐 Admin", 
-      color: "bg-rose-500/10 border-rose-500/20 text-rose-400" 
+      color: "bg-cyber-magenta/10 border-cyber-magenta/30 text-magenta-300 shadow-[0_0_12px_rgba(217,70,239,0.1)]" 
     },
   };
 
   const config = roleConfig[user.role] || roleConfig.CLIENT;
 
   return (
-    <span className={`rounded-lg border px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase ${config.color}`}>
+    <span className={`rounded-lg border px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm ${config.color}`}>
       {config.label}
     </span>
   );
@@ -90,29 +90,29 @@ export default async function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-900/60 bg-slate-950/75 backdrop-blur-xl shadow-sm shadow-slate-950/20">
+    <header className="sticky top-0 z-50 border-b border-white/5 bg-[#060212]/60 backdrop-blur-xl shadow-sm transition-all">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         
-        {/* Logo */}
+        {/* Logo avec le dégradé Cyber de l'image */}
         <Link href="/" className="text-xl font-black tracking-tight text-white select-none hover:opacity-90 active:scale-[0.98] transition-all">
-          SOS<span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Besoin</span>
+          SOS<span className="bg-gradient-to-r from-white via-purple-300 to-cyber-magenta bg-clip-text text-transparent">Besoin</span>
         </Link>
 
         {/* Liens de Navigation */}
-        <nav className="flex items-center gap-1 text-m font-bold text-slate-400">
+        <nav className="flex items-center gap-1 text-lg font-semibold text-slate-300">
           <Link
             href="/"
-            className="rounded-xl px-3 py-2 hover:bg-slate-900/60 hover:text-slate-100 transition-all duration-200"
+            className="rounded-xl px-3 py-2 hover:bg-white/5 hover:text-slate-50 transition-all duration-200"
           >
             Accueil
           </Link>
 
           <Link
             href="/service-requests"
-            className="rounded-xl px-3 py-2 hover:bg-slate-900/60 hover:text-slate-100 transition-all duration-200"
+            className="rounded-xl px-3 py-2 hover:bg-white/5 hover:text-slate-50 transition-all duration-200"
           >
             {userRole === "PROVIDER"
-              ? "Demandes du marché"
+              ? "Demandes"
               : userRole === "CLIENT"
                 ? "Mes demandes"
                 : "Demandes"}
@@ -121,7 +121,7 @@ export default async function Header() {
           {userRole === "CLIENT" && (
             <Link
               href="/offres-recues"
-              className="rounded-xl px-3 py-2 hover:bg-slate-900/60 hover:text-slate-100 transition-all duration-200"
+              className="rounded-xl px-3 py-2 hover:bg-white/5 hover:text-slate-50 transition-all duration-200"
             >
               Offres reçues
             </Link>
@@ -130,7 +130,7 @@ export default async function Header() {
           {userRole === "PROVIDER" && (
             <Link
               href="/offres-envoyees"
-              className="rounded-xl px-3 py-2 hover:bg-slate-900/60 hover:text-slate-100 transition-all duration-200"
+              className="rounded-xl px-3 py-2 hover:bg-white/5 hover:text-slate-100 transition-all duration-200"
             >
               Mes offres
             </Link>
@@ -139,17 +139,18 @@ export default async function Header() {
           {userRole === "ADMIN" && (
             <Link
               href="/admin"
-              className="rounded-xl px-3 py-2 hover:bg-slate-900/60 hover:text-slate-100 transition-all duration-200"
+              className="rounded-xl px-3 py-2 hover:bg-white/5 hover:text-slate-100 transition-all duration-200"
             >
               Admin
             </Link>
           )}
 
           {userId && <CartCount />}
+          
           {process.env.NODE_ENV === "development" && (
             <Link
               href="/test-dev"
-              className="rounded-xl px-3 py-2 text-amber-500 hover:bg-slate-900 transition-all font-mono"
+              className="rounded-xl px-3 py-2 text-cyber-magenta hover:bg-white/5 transition-all font-mono text-xs"
             >
               [Dev]
             </Link>
@@ -160,35 +161,27 @@ export default async function Header() {
         <div className="flex items-center gap-3">
           {!userId ? (
             <div className="flex items-center gap-2">
-              {/*
-                FIX : SignInButton/SignUpButton de @clerk/nextjs@7 ne supportent
-                plus l'imbrication d'un <button> enfant comme dans la v6.
-                L'erreur "multiple children components" cassait la page (HTTP 500)
-                pour tout visiteur non-authentifié, empêchant l'exécution des
-                tests Playwright en CI. Remplacés par <Link> vers les pages
-                /sign-in et /sign-up (catch-all Clerk déjà configurées).
-              */}
               <Link
                 href="/sign-in"
-                className="rounded-xl px-4 py-2 text-s font-bold text-slate-400 hover:text-white hover:bg-slate-900/50 transition-all duration-200"
+                className="rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-200"
               >
                 Connexion
               </Link>
 
               <Link
                 href="/sign-up"
-                className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-s font-bold text-white hover:from-blue-500 hover:to-indigo-500 shadow-md shadow-blue-500/10 transition-all duration-200 active:scale-[0.98]"
+                className="btn-cyber-primary rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-md active:scale-[0.98]"
               >
                 Inscription
               </Link>
             </div>
           ) : (
-            <div className="flex items-center gap-2.5 bg-slate-900/30 border border-slate-900/80 rounded-xl p-1.5 pr-2.5 shadow-inner">
+            <div className="flex items-center gap-2.5 bg-white/[0.02] border border-white/5 rounded-xl p-1.5 pr-2.5 shadow-inner backdrop-blur-md">
               <UserRoleBadge />
               <UserButton 
                 appearance={{
                   elements: {
-                    avatarBox: "h-6 w-6 border border-slate-800 shadow-md"
+                    avatarBox: "h-6 w-6 border border-white/10 shadow-md hover:border-cyber-purple/50 transition-colors"
                   }
                 }}
               />

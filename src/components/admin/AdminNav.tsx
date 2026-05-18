@@ -12,21 +12,24 @@ const navLinks: Array<{ label: string; href: string; key: AdminNavProps["active"
 
 export default function AdminNav({ active }: AdminNavProps) {
   return (
-    <div className="rounded-3xl border border-slate-900 bg-slate-900/50 p-4">
-      <div className="flex flex-wrap gap-3">
-        {navLinks.map((link) => (
-          <Link
-            key={link.key}
-            href={link.href}
-            className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-all ${
-              active === link.key
-                ? "bg-slate-100 text-slate-950 shadow-sm"
-                : "border border-slate-800 bg-slate-950/80 text-slate-300 hover:bg-slate-900/80 hover:text-white"
-            }`}
-          >
-            {link.label}
-          </Link>
-        ))}
+    <div className="cyber-card rounded-2xl p-3 border-white/5 bg-white/[0.01]">
+      <div className="flex flex-wrap gap-2">
+        {navLinks.map((link) => {
+          const isActive = active === link.key;
+          return (
+            <Link
+              key={link.key}
+              href={link.href}
+              className={`rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-200 active:scale-[0.98] ${
+                isActive
+                  ? "bg-purple-500/10 border border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.12)]"
+                  : "border border-white/5 bg-transparent text-slate-400 hover:border-white/10 hover:text-slate-200 hover:bg-white/[0.02]"
+              }`}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

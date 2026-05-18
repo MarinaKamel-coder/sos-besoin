@@ -38,18 +38,18 @@ export default async function AdminDashboard() {
   });
 
   return (
-    <main className="mx-auto w-full max-w-6xl p-6 text-slate-100 bg-slate-950 min-h-screen space-y-8">
+    <main className="mx-auto w-full max-w-6xl p-6 text-slate-100 bg-transparent min-h-screen space-y-8">
       
       {/* En-tête du Dashboard */}
-      <div>
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-          <h1 className="text-2xl font-black text-white sm:text-3xl tracking-tight">
+      <div className="space-y-1">
+        <div className="flex items-center gap-2.5">
+          <span className="h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.6)] animate-pulse" />
+          <h1 className="text-2xl font-black text-white sm:text-3xl tracking-tight uppercase tracking-wider">
             Administration système
           </h1>
         </div>
-        <p className="text-xs text-slate-500 mt-1">
-          Supervisez l&apos;activité globale et ajustez les rôles d&apos;accès de la plateforme.
+        <p className="text-xs text-slate-400 font-medium">
+          Supervisez l&apos;activité globale, auditez les logs et ajustez les rôles d&apos;accès de la plateforme.
         </p>
       </div>
 
@@ -58,42 +58,42 @@ export default async function AdminDashboard() {
       {/* Grille des KPIs (Indicateurs clés de performance) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
-        <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-5 backdrop-blur-sm">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Membres inscrits</p>
-          <p className="text-2xl font-black text-white mt-1">{totalUsers}</p>
+        <div className="cyber-card rounded-2xl p-5 border-white/5 bg-white/[0.01] shadow-[0_0_20px_rgba(255,255,255,0.01)]">
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Membres inscrits</p>
+          <p className="text-3xl font-black text-white mt-1.5 font-mono">{totalUsers}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-5 backdrop-blur-sm">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Demandes actives</p>
-          <p className="text-2xl font-black text-blue-400 mt-1">{totalRequests}</p>
+        <div className="cyber-card rounded-2xl p-5 border-blue-500/10 bg-blue-500/[0.01] shadow-[0_0_20px_rgba(59,130,246,0.03)]">
+          <p className="text-[10px] font-black text-blue-400/70 uppercase tracking-widest">Demandes actives</p>
+          <p className="text-3xl font-black text-blue-400 mt-1.5 font-mono">{totalRequests}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-5 backdrop-blur-sm">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Offres soumises</p>
-          <p className="text-2xl font-black text-purple-400 mt-1">{totalOffers}</p>
+        <div className="cyber-card rounded-2xl p-5 border-purple-500/10 bg-purple-500/[0.01] shadow-[0_0_20px_rgba(168,85,247,0.03)]">
+          <p className="text-[10px] font-black text-purple-400/70 uppercase tracking-widest">Offres soumises</p>
+          <p className="text-3xl font-black text-purple-400 mt-1.5 font-mono">{totalOffers}</p>
         </div>
 
       </div>
 
       {/* Section de gestion rapide */}
-      <div className="rounded-2xl border border-slate-900 bg-slate-900/30 p-6 backdrop-blur-sm space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">
-              Accès rapide aux outils admin
+      <div className="cyber-card rounded-2xl p-6 border-white/5 bg-white/[0.01]">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-0.5">
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">
+              Accès rapide aux outils de modération
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
-              Gérer les utilisateurs, les demandes et les offres sans publier de nouvelle demande ou offre.
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              Supervisez et nettoyez les contenus du marché sans avoir besoin de publier une demande ou une offre.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/admin" className="rounded-xl border border-slate-800 bg-slate-950/80 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900 transition-all">
-              Dashboard utilisateurs
+          <div className="flex flex-wrap gap-2">
+            <Link href="/admin" className="px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5 bg-white/[0.02] text-slate-300 hover:bg-white/[0.06] transition-all active:scale-[0.98]">
+              Dashboard membres
             </Link>
-            <Link href="/admin/service-requests" className="rounded-xl border border-blue-500 bg-blue-500/10 px-4 py-2 text-xs font-semibold text-blue-300 hover:bg-blue-500/20 transition-all">
+            <Link href="/admin/service-requests" className="px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-500/20 bg-blue-500/5 text-blue-400 hover:bg-blue-500/10 transition-all active:scale-[0.98]">
               Gérer les demandes
             </Link>
-            <Link href="/admin/offers" className="rounded-xl border border-purple-500 bg-purple-500/10 px-4 py-2 text-xs font-semibold text-purple-300 hover:bg-purple-500/20 transition-all">
+            <Link href="/admin/offers" className="px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-purple-500/20 bg-purple-500/5 text-purple-400 hover:bg-purple-500/10 transition-all active:scale-[0.98]">
               Gérer les offres
             </Link>
           </div>
@@ -101,52 +101,68 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Section Tableau des utilisateurs */}
-      <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 backdrop-blur-sm">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">
-              Tableau des utilisateurs
+      <div className="cyber-card rounded-2xl p-6 border-white/5 bg-white/[0.01] space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-0.5">
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">
+              Tableau général des utilisateurs
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
-              Consultez l’état des comptes, les rôles actuels et modifiez les permissions directement.
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              Consultez l’état des comptes, auditez les permissions et appliquez les rôles d’accès directement.
             </p>
           </div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">
             Total : {totalUsers}
-          </p>
+          </span>
         </div>
 
-        <div className="overflow-x-auto rounded-3xl border border-slate-900 bg-slate-950/80">
+        <div className="overflow-x-auto rounded-xl border border-white/5 bg-transparent">
           <table className="min-w-full text-left text-xs text-slate-300">
-            <thead className="border-b border-slate-800 bg-slate-900/95 text-slate-500 uppercase tracking-wide">
+            <thead className="border-b border-white/5 bg-white/[0.02] text-[10px] font-black uppercase tracking-widest text-slate-400">
               <tr>
-                <th className="px-4 py-3">Nom</th>
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">Rôle</th>
-                <th className="px-4 py-3">Créé le</th>
-                <th className="px-4 py-3">Action</th>
+                <th className="px-5 py-3.5">Identité / Nom</th>
+                <th className="px-5 py-3.5">Courriel</th>
+                <th className="px-5 py-3.5">Rôle</th>
+                <th className="px-5 py-3.5">Date d'inscription</th>
+                <th className="px-5 py-3.5 text-right">Permissions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/[0.02]">
               {allUsers.map((u) => (
-                <tr key={u.id} className="border-b border-slate-900/70 odd:bg-slate-950 even:bg-slate-950/70">
-                  <td className="px-4 py-4">
-                    <div className="font-semibold text-slate-100">
+                <tr key={u.id} className="hover:bg-white/[0.01] transition-colors duration-150">
+                  <td className="px-5 py-4">
+                    <div className="font-bold text-slate-200">
                       {u.name ?? "Utilisateur Anonyme"}
                     </div>
-                    <div className="text-[11px] text-slate-500">{u.id === user.id ? "Vous" : ""}</div>
+                    {u.id === user.id && (
+                      <span className="inline-block mt-0.5 text-[9px] font-black uppercase tracking-widest text-purple-400 bg-purple-500/10 border border-purple-500/20 px-1.5 py-0.5 rounded">
+                        Vous
+                      </span>
+                    )}
                   </td>
-                  <td className="px-4 py-4 text-slate-400 break-all">{u.email}</td>
-                  <td className="px-4 py-4 text-slate-300">{u.role}</td>
-                  <td className="px-4 py-4 text-slate-500">
+                  <td className="px-5 py-4 text-slate-400 font-medium break-all font-mono text-[11px]">{u.email}</td>
+                  <td className="px-5 py-4">
+                    <span className={`inline-block text-[10px] font-black uppercase tracking-wider ${
+                      u.role === "ADMIN" 
+                        ? "text-rose-400" 
+                        : u.role === "PROVIDER" 
+                        ? "text-purple-400" 
+                        : "text-slate-400"
+                    }`}>
+                      {u.role}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 text-slate-500 font-mono text-[11px]">
                     {new Date(u.createdAt).toLocaleDateString("fr-FR", {
                       day: "2-digit",
                       month: "2-digit",
                       year: "numeric",
                     })}
                   </td>
-                  <td className="px-4 py-4">
-                    <RoleSelect userId={u.id} currentRole={u.role} />
+                  <td className="px-5 py-4 text-right">
+                    <div className="inline-block text-left">
+                      <RoleSelect userId={u.id} currentRole={u.role} />
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -156,35 +172,35 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Section Historique des actions admin */}
-      <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 backdrop-blur-sm">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">
-              Historique des actions admin
+      <div className="cyber-card rounded-2xl p-6 border-white/5 bg-white/[0.01] space-y-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-0.5">
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">
+              Registre d&apos;audit administratif
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
-              Les dernières modifications de rôles et actions administratives enregistrées.
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              Historique immuable des dernières élévations de privilèges et actions de modération.
             </p>
           </div>
-          <span className="rounded-full border border-slate-800 bg-slate-950/80 px-3 py-1 text-[11px] uppercase tracking-wider text-slate-400">
-            {adminActions.length} action(s)
+          <span className="rounded-xl border border-white/5 bg-white/[0.02] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
+            {adminActions.length} log(s)
           </span>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {adminActions.length > 0 ? (
             adminActions.map((action) => (
               <div
                 key={action.id}
-                className="flex flex-col gap-3 rounded-2xl border border-slate-900/70 bg-slate-950/80 p-4 sm:flex-row sm:items-start sm:justify-between"
+                className="flex flex-col gap-3 rounded-xl border border-white/[0.03] bg-white/[0.01] p-4 sm:flex-row sm:items-center sm:justify-between hover:border-white/10 transition-all duration-200"
               >
-                <div>
-                  <p className="text-sm text-slate-100">{action.action}</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Effectuée par {action.admin.name ?? action.admin.email}
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-slate-200 leading-relaxed">{action.action}</p>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Exécuté par : <span className="text-slate-400 font-semibold">{action.admin.name ?? action.admin.email}</span>
                   </p>
                 </div>
-                <span className="text-[11px] uppercase tracking-wide text-slate-500">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wide text-slate-500 whitespace-nowrap">
                   {new Date(action.createdAt).toLocaleString("fr-FR", {
                     day: "2-digit",
                     month: "2-digit",
@@ -196,7 +212,7 @@ export default async function AdminDashboard() {
               </div>
             ))
           ) : (
-            <p className="text-sm text-slate-500">Aucune action administrative enregistrée pour le moment.</p>
+            <p className="text-xs text-slate-500 font-medium py-2">Aucune action administrative enregistrée dans le registre d'audit.</p>
           )}
         </div>
       </div>

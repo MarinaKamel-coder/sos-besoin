@@ -33,21 +33,22 @@ export default async function Page({ params }: PageProps) {
 
   const isRequestOwner = currentUser?.id === request.clientId;
 
+  /* Configuration des badges de statut en tons néon lissés */
   const statusConfig: Record<string, string> = {
-    OPEN: "bg-blue-500/10 border-blue-500/20 text-blue-400",
-    CLOSED: "bg-slate-800 border-slate-700 text-slate-400",
-    PENDING: "bg-amber-500/10 border-amber-500/20 text-amber-400",
+    OPEN: "bg-white/5 border-purple-500/30 text-purple-300 shadow-[0_0_12px_rgba(109,40,217,0.15)]",
+    CLOSED: "bg-white/5 border-white/10 text-slate-400",
+    PENDING: "bg-white/5 border-amber-500/30 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.1)]",
   };
   const currentStatusClass = statusConfig[request.status] || statusConfig.OPEN;
 
   return (
-    <main className="mx-auto w-full max-w-6xl p-6 text-slate-100 bg-slate-950 min-h-screen">
+    <main className="mx-auto w-full max-w-6xl p-6 text-slate-100 bg-transparent min-h-screen">
       {/* Fil d'ariane / Retour */}
       <Link
         href="/service-requests"
-        className="mb-6 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-300 transition-colors"
+        className="mb-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-purple-400 transition-colors"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-3 h-3">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
         </svg>
         Retour aux demandes
@@ -64,28 +65,28 @@ export default async function Page({ params }: PageProps) {
             <h1 className="text-3xl font-black text-white tracking-tight sm:text-4xl leading-tight">
               {request.title}
             </h1>
-            <p className="text-sm text-slate-400">
-              Publié par <span className="text-slate-200 font-semibold">{request.client.name ?? request.client.email}</span>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">
+              Publié par <span className="text-purple-400 font-bold">{request.client.name ?? request.client.email}</span>
             </p>
           </div>
 
           {/* Description */}
-          <div className="space-y-2.5">
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-500">Description du besoin</h2>
-            <div className="whitespace-pre-wrap text-sm text-slate-300 leading-relaxed bg-slate-900/20 border border-slate-900 rounded-2xl p-5 shadow-inner">
+          <div className="space-y-3">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">Description du besoin</h2>
+            <div className="whitespace-pre-wrap text-sm text-slate-300 leading-relaxed bg-white/[0.01] border border-white/5 rounded-2xl p-6 font-medium shadow-inner">
               {request.description}
             </div>
           </div>
 
           {/* Catégories */}
           {request.categories.length > 0 && (
-            <div className="space-y-2.5">
-              <h2 className="text-xs font-black uppercase tracking-widest text-slate-500">Secteurs d&apos;activité</h2>
+            <div className="space-y-3">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">Secteurs d&apos;activité</h2>
               <div className="flex flex-wrap gap-2">
                 {request.categories.map((rc) => (
                   <span
                     key={rc.categoryId}
-                    className="rounded-xl border border-blue-500/10 bg-blue-500/5 px-3 py-1.5 text-xs font-semibold text-blue-400 tracking-wide"
+                    className="rounded-xl border border-purple-500/20 bg-cyber-purple/5 px-3 py-1.5 text-xs font-bold text-purple-300 tracking-wide backdrop-blur-sm"
                   >
                     {rc.category.name}
                   </span>
@@ -95,38 +96,38 @@ export default async function Page({ params }: PageProps) {
           )}
 
           {/* Section Liste des Offres */}
-          <div className="space-y-4 pt-4 border-t border-slate-900">
-            <h2 className="text-lg font-black text-white flex items-center gap-2">
+          <div className="space-y-5 pt-4 border-t border-white/5">
+            <h2 className="text-lg font-black text-white flex items-center gap-2 tracking-tight">
               <span>📩</span> Offres reçues ({request.offers.length})
-            </h2>
+            </h2> 
 
             {request.offers.length === 0 ? (
-              <div className="rounded-2xl border border-slate-900 bg-slate-900/10 p-10 text-center text-sm text-slate-500">
+              <div className="cyber-card rounded-2xl p-10 text-center text-sm text-slate-500 font-medium">
                 Aucune proposition n&apos;a été soumise pour le moment.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {request.offers.map((offer) => (
                   <div
                     key={offer.id}
-                    className="rounded-2xl border border-slate-900 bg-slate-900/30 p-5 backdrop-blur-sm shadow-sm transition-all hover:border-slate-800"
+                    className="cyber-card rounded-2xl p-5 transition-all"
                   >
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="space-y-1.5 flex-1">
-                        <p className="text-sm font-bold text-slate-100">
+                      <div className="space-y-2 flex-1">
+                        <p className="text-sm font-bold text-white tracking-tight">
                           {offer.provider.name ?? offer.provider.email}
                         </p>
-                        <p className="text-sm text-slate-400 leading-relaxed">
+                        <p className="text-sm text-slate-400 font-medium leading-relaxed">
                           {offer.message}
                         </p>
                       </div>
                       
-                      <div className="flex flex-row items-center justify-between border-t border-slate-900/50 pt-3 sm:flex-col sm:items-end sm:justify-start sm:border-none sm:pt-0 gap-3 shrink-0">
+                      <div className="flex flex-row items-center justify-between border-t border-white/5 pt-3 sm:flex-col sm:items-end sm:justify-start sm:border-none sm:pt-0 gap-3 shrink-0">
                         <div className="text-left sm:text-right">
-                          <p className="text-xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                          <p className="text-xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent tracking-tight">
                             {(offer.price / 100).toFixed(2)} $
                           </p>
-                          <span className="inline-block rounded-md bg-slate-950 px-2 py-0.5 text-[9px] font-black text-slate-400 uppercase tracking-wider border border-slate-900 mt-1">
+                          <span className="inline-block rounded-md bg-white/[0.02] px-2 py-0.5 text-[9px] font-black text-slate-400 uppercase tracking-widest border border-white/5 mt-1">
                             {offer.status}
                           </span>
                         </div>
@@ -141,7 +142,7 @@ export default async function Page({ params }: PageProps) {
                           >
                             <button
                               type="submit"
-                              className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white hover:from-blue-500 hover:to-indigo-500 shadow-md transition-all active:scale-[0.98]"
+                              className="btn-cyber-primary w-full px-4 py-2 text-xs font-bold uppercase tracking-wider"
                             >
                               Prendre l&apos;offre
                             </button>
@@ -157,7 +158,7 @@ export default async function Page({ params }: PageProps) {
 
           {/* Formulaire d'offre pour les prestataires */}
           {request.status === "OPEN" && canCreateOffer && (
-            <div className="mt-10 border-t border-slate-900 pt-8">
+            <div className="mt-10 border-t border-white/5 pt-8">
               <OfferForm requestId={request.id} />
             </div>
           )}
@@ -167,40 +168,40 @@ export default async function Page({ params }: PageProps) {
         <div className="lg:col-span-1 lg:sticky lg:top-24 space-y-4">
           
           {/* Panneau d'informations clés */}
-          <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-5 backdrop-blur-sm space-y-4 shadow-sm">
+          <div className="cyber-card rounded-2xl p-5 space-y-5">
             
-            <div className="flex items-center justify-between border-b border-slate-900/60 pb-3">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-500">Statut actuel</span>
-              <span className={`rounded-lg border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${currentStatusClass}`}>
+            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+              <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Statut actuel</span>
+              <span className={`rounded-lg border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider backdrop-blur-sm ${currentStatusClass}`}>
                 {request.status}
               </span>
             </div>
 
             {/* Détails logistiques */}
-            <div className="space-y-3.5">
-              <div className="flex items-start gap-3 text-sm">
-                <span className="text-base mt-0.5">📍</span>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3.5 text-sm">
+                <span className="text-base mt-0.5 filter drop-shadow-[0_0_6px_rgba(168,85,247,0.4)]">📍</span>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Lieu d&apos;intervention</p>
-                  <p className="text-slate-300 font-medium mt-0.5">{request.location ?? "Lieu non spécifié"}</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Lieu d&apos;intervention</p>
+                  <p className="text-slate-300 font-bold text-sm mt-0.5 tracking-tight">{request.location ?? "Lieu non spécifié"}</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 text-sm">
-                <span className="text-base mt-0.5">📅</span>
+              <div className="flex items-start gap-3.5 text-sm">
+                <span className="text-base mt-0.5 filter drop-shadow-[0_0_6px_rgba(168,85,247,0.4)]">📅</span>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Date planifiée</p>
-                  <p className="text-slate-300 font-medium mt-0.5">{new Date(request.neededAt).toLocaleDateString("fr-CA")}</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Date planifiée</p>
+                  <p className="text-slate-300 font-bold text-sm mt-0.5 tracking-tight">{new Date(request.neededAt).toLocaleDateString("fr-CA")}</p>
                 </div>
               </div>
             </div>
 
             {/* Actions d'administration/propriétaire de la demande */}
             {request.status === "OPEN" && isRequestOwner && (
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-900/60">
+              <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-white/5">
                 <Link
                   href={`/service-requests/${request.id}/edit`}
-                  className="rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-center text-xs font-bold text-slate-300 hover:text-white hover:border-slate-700 transition-all active:scale-[0.98]"
+                  className="rounded-xl bg-white/[0.02] border border-white/5 px-3 py-2.5 text-center text-xs font-bold text-slate-300 hover:text-white hover:border-white/10 transition-all active:scale-[0.98] uppercase tracking-wider flex items-center justify-center gap-1"
                 >
                   ✏️ Modifier
                 </Link>
@@ -211,20 +212,20 @@ export default async function Page({ params }: PageProps) {
 
           {/* Bloc de Réservation validée */}
           {request.booking && (
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-2.5">
-              <h3 className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-3 backdrop-blur-sm">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-1.5">
                 <span>🎉</span> Réservation validée
               </h3>
-              <div className="text-xs text-slate-400 space-y-1">
-                <p>Contrat : <strong className="text-emerald-400 font-bold uppercase">{request.booking.status}</strong></p>
-                <p>Fonds déposés : <strong className="text-white text-sm font-black">{(request.booking.amountTotal / 100).toFixed(2)} $</strong></p>
+              <div className="text-xs font-medium text-slate-400 space-y-1.5">
+                <p>Contrat : <strong className="text-emerald-400 font-bold uppercase tracking-wider">{request.booking.status}</strong></p>
+                <p>Fonds déposés : <strong className="text-white text-base font-black tracking-tight">{(request.booking.amountTotal / 100).toFixed(2)} $</strong></p>
               </div>
             </div>
           )}
 
           {/* Messages de restrictions d'offres contextuels */}
           {request.status === "OPEN" && !canCreateOffer && (
-            <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-4 text-[11px] text-slate-400 leading-relaxed">
+            <div className="cyber-card rounded-2xl p-4 text-[11px] text-slate-400 leading-relaxed font-medium">
               {isRequestOwner
                 ? "💡 Cette annonce vous appartient. Vous recevrez des alertes dès qu'un professionnel formulera une proposition budgétaire."
                 : currentUser

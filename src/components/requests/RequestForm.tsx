@@ -59,14 +59,14 @@ export default function RequestForm({
   return (
     <form
       action={formAction}
-      className="w-full max-w-2xl mx-auto p-6 sm:p-8 bg-slate-900/40 border border-slate-900/80 rounded-2xl backdrop-blur-md shadow-xl space-y-6 text-slate-100"
+      className="cyber-card w-full max-w-2xl mx-auto p-6 sm:p-8 rounded-2xl space-y-6 text-slate-100"
     >
       {/* En-tête du formulaire */}
-      <div className="border-b border-slate-900 pb-5">
-        <h2 className="text-xl font-black text-white sm:text-2xl">
+      <div className="border-b border-white/5 pb-5">
+        <h2 className="text-xl font-black text-white sm:text-2xl tracking-tight">
           {isEdit ? "Modifier la demande" : "Décrire votre besoin"}
         </h2>
-        <p className="text-sm text-slate-400 mt-1 leading-relaxed">
+        <p className="text-sm text-slate-400 mt-1.5 font-medium leading-relaxed">
           {isEdit
             ? "Mettez à jour les spécifications et contraintes de votre demande de service."
             : "Remplissez les détails ci-dessous afin de recevoir des propositions ciblées."}
@@ -84,7 +84,7 @@ export default function RequestForm({
       <div className="space-y-2">
         <label
           htmlFor="title"
-          className="block text-xs font-bold uppercase tracking-wider text-slate-400"
+          className="block text-xs font-bold uppercase tracking-widest text-slate-400"
         >
           Titre de la demande
         </label>
@@ -94,14 +94,14 @@ export default function RequestForm({
           type="text"
           defaultValue={initialData?.title}
           placeholder="Ex: Réparation plomberie sous évier cuisine"
-          className={`w-full px-4 py-3 bg-slate-950/40 border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 ${
+          className={`w-full px-4 py-3 bg-white/[0.01] border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-cyber-purple/50 focus:ring-4 focus:ring-cyber-purple/5 font-medium ${
             state.errors?.title
-              ? "border-rose-500/50 bg-rose-500/5"
-              : "border-slate-800"
+              ? "border-rose-500/30 bg-rose-500/5 focus:border-rose-500/50 focus:ring-rose-500/5"
+              : "border-white/5"
           }`}
         />
         {state.errors?.title && (
-          <p className="text-rose-400 text-xs font-medium pl-1">
+          <p className="text-rose-400 text-xs font-semibold pl-1">
             {state.errors.title[0]}
           </p>
         )}
@@ -111,7 +111,7 @@ export default function RequestForm({
       <div className="space-y-2">
         <label
           htmlFor="description"
-          className="block text-xs font-bold uppercase tracking-wider text-slate-400"
+          className="block text-xs font-bold uppercase tracking-widest text-slate-400"
         >
           Description détaillée
         </label>
@@ -121,14 +121,14 @@ export default function RequestForm({
           rows={5}
           defaultValue={initialData?.description}
           placeholder="Détaillez au maximum votre besoin (matériel disponible, accès, contraintes)..."
-          className={`w-full px-4 py-3 bg-slate-950/40 border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 resize-none ${
+          className={`w-full px-4 py-3 bg-white/[0.01] border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-cyber-purple/50 focus:ring-4 focus:ring-cyber-purple/5 resize-none font-medium leading-relaxed ${
             state.errors?.description
-              ? "border-rose-500/50 bg-rose-500/5"
-              : "border-slate-800"
+              ? "border-rose-500/30 bg-rose-500/5 focus:border-rose-500/50 focus:ring-rose-500/5"
+              : "border-white/5"
           }`}
         ></textarea>
         {state.errors?.description && (
-          <p className="text-rose-400 text-xs font-medium pl-1">
+          <p className="text-rose-400 text-xs font-semibold pl-1">
             {state.errors.description[0]}
           </p>
         )}
@@ -140,7 +140,7 @@ export default function RequestForm({
         <div className="space-y-2">
           <label
             htmlFor="neededAt"
-            className="block text-xs font-bold uppercase tracking-wider text-slate-400"
+            className="block text-xs font-bold uppercase tracking-widest text-slate-400"
           >
             Date d&apos;exécution souhaitée
           </label>
@@ -153,14 +153,14 @@ export default function RequestForm({
                 ? new Date(initialData.neededAt).toISOString().split("T")[0]
                 : ""
             }
-            className={`w-full px-4 py-3 bg-slate-950/40 border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 ${
+            className={`w-full px-4 py-3 bg-white/[0.01] border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-cyber-purple/50 focus:ring-4 focus:ring-cyber-purple/5 font-medium ${
               state.errors?.neededAt
-                ? "border-rose-500/50 bg-rose-500/5"
-                : "border-slate-800"
+                ? "border-rose-500/30 bg-rose-500/5 focus:border-rose-500/50 focus:ring-rose-500/5"
+                : "border-white/5"
             }`}
           />
           {state.errors?.neededAt && (
-            <p className="text-rose-400 text-xs font-medium pl-1">
+            <p className="text-rose-400 text-xs font-semibold pl-1">
               {state.errors.neededAt[0]}
             </p>
           )}
@@ -170,7 +170,7 @@ export default function RequestForm({
         <div className="space-y-2">
           <label
             htmlFor="location"
-            className="block text-xs font-bold uppercase tracking-wider text-slate-400"
+            className="block text-xs font-bold uppercase tracking-widest text-slate-400"
           >
             Lieu / Ville
           </label>
@@ -180,14 +180,14 @@ export default function RequestForm({
             type="text"
             defaultValue={initialData?.location || ""}
             placeholder="Ex: Longueuil"
-            className={`w-full px-4 py-3 bg-slate-950/40 border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 ${
+            className={`w-full px-4 py-3 bg-white/[0.01] border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-cyber-purple/50 focus:ring-4 focus:ring-cyber-purple/5 font-medium ${
               state.errors?.location
-                ? "border-rose-500/50 bg-rose-500/5"
-                : "border-slate-800"
+                ? "border-rose-500/30 bg-rose-500/5 focus:border-rose-500/50 focus:ring-rose-500/5"
+                : "border-white/5"
             }`}
           />
           {state.errors?.location && (
-            <p className="text-rose-400 text-xs font-medium pl-1">
+            <p className="text-rose-400 text-xs font-semibold pl-1">
               {state.errors.location[0]}
             </p>
           )}
@@ -198,7 +198,7 @@ export default function RequestForm({
       <div className="space-y-2">
         <label
           htmlFor="categoryId"
-          className="block text-xs font-bold uppercase tracking-wider text-slate-400"
+          className="block text-xs font-bold uppercase tracking-widest text-slate-400"
         >
           Secteur d&apos;activité / Catégorie
         </label>
@@ -207,10 +207,10 @@ export default function RequestForm({
           name="categoryId"
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className={`w-full px-4 py-3 bg-slate-950/40 border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 appearance-none ${
+          className={`w-full px-4 py-3 bg-white/[0.01] border text-sm text-slate-100 rounded-xl outline-none transition-all focus:border-cyber-purple/50 focus:ring-4 focus:ring-cyber-purple/5 appearance-none font-medium ${
             state.errors?.categoryId
-              ? "border-rose-500/50 bg-rose-500/5"
-              : "border-slate-800"
+              ? "border-rose-500/30 bg-rose-500/5 focus:border-rose-500/50 focus:ring-rose-500/5"
+              : "border-white/5"
           }`}
           style={{
             backgroundImage:
@@ -220,46 +220,44 @@ export default function RequestForm({
             backgroundRepeat: "no-repeat",
           }}
         >
-          <option value="" disabled className="bg-slate-900 text-slate-400">
+          <option value="" disabled className="bg-[#0b071e] text-slate-500">
             Sélectionner une catégorie
           </option>
           {categories.map((cat) => (
             <option
               key={cat.id}
               value={cat.id}
-              className="bg-slate-900 text-slate-100"
+              className="bg-[#0b071e] text-slate-300"
             >
               {cat.name}
             </option>
           ))}
           <option
             value="autre"
-            className="bg-slate-900 text-blue-400 font-bold"
+            className="bg-[#0b071e] text-purple-400 font-bold"
           >
             + Autre (Créer une nouvelle catégorie)
           </option>
         </select>
 
         {selectedCategory === "autre" && (
-          <div className="mt-3 p-4 bg-slate-950/30 border border-slate-900 rounded-xl space-y-2">
+          <div className="mt-3 p-4 bg-white/[0.01] border border-purple-500/20 rounded-xl space-y-2.5 backdrop-blur-sm">
             <input
               type="text"
               name="newCategoryName"
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               placeholder="Nom de la nouvelle catégorie"
-              className="w-full px-4 py-2.5 bg-slate-950/60 border border-blue-500/30 rounded-lg text-sm text-white focus:border-blue-500 outline-none transition-all"
+              className="w-full px-4 py-2.5 bg-[#060212]/50 border border-purple-500/30 rounded-lg text-sm text-white focus:border-cyber-purple outline-none transition-all font-medium focus:ring-4 focus:ring-cyber-purple/5"
             />
-            <p className="text-[11px] text-slate-500 leading-normal pl-0.5">
-              💡 Note : Cette catégorie sera ajoutée à la base globale et
-              deviendra accessible instantanément pour l&apos;ensemble de la
-              communauté.
+            <p className="text-[11px] text-slate-500 font-medium leading-normal pl-0.5">
+              💡 Note : Cette catégorie sera ajoutée à la base globale et deviendra accessible instantanément pour l&apos;ensemble de la communauté.
             </p>
           </div>
         )}
 
         {state.errors?.categoryId && (
-          <p className="text-rose-400 text-xs font-medium pl-1">
+          <p className="text-rose-400 text-xs font-semibold pl-1">
             {state.errors.categoryId[0]}
           </p>
         )}
@@ -270,16 +268,16 @@ export default function RequestForm({
         <button
           type="submit"
           disabled={isPending}
-          className={`w-full py-3.5 rounded-xl text-sm font-bold tracking-wide shadow-md transition-all active:scale-[0.99] ${
+          className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition-all active:scale-[0.99] ${
             isPending
-              ? "bg-slate-800 text-slate-500 cursor-wait border border-slate-800"
-              : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/5"
+              ? "bg-white/5 text-slate-500 cursor-wait border border-white/5"
+              : "btn-cyber-primary"
           }`}
         >
           {isPending ? (
             <span className="flex items-center justify-center gap-2">
               <svg
-                className="animate-spin h-4 w-4 text-slate-500"
+                className="animate-spin h-4 w-4 text-purple-400"
                 viewBox="0 0 24 24"
                 fill="none"
               >
@@ -302,7 +300,7 @@ export default function RequestForm({
           ) : isEdit ? (
             "Enregistrer les modifications"
           ) : (
-            "Soumettre l'appel d'offre"
+            "Soumettre la demande"
           )}
         </button>
       </div>
@@ -310,16 +308,16 @@ export default function RequestForm({
       {/* Retours d'état d'action */}
       {state.message && (
         <div
-          className={`p-4 rounded-xl border flex items-start gap-3 transition-opacity ${
+          className={`p-4 rounded-xl border flex items-start gap-3 transition-opacity backdrop-blur-sm ${
             state.success
-              ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400"
-              : "bg-rose-500/5 border-rose-500/20 text-rose-400"
+              ? "bg-white/5 border-emerald-500/20 text-emerald-400"
+              : "bg-white/5 border-rose-500/20 text-rose-400"
           }`}
         >
-          <span className="text-base leading-none mt-0.5">
+          <span className="text-sm leading-none mt-0.5">
             {state.success ? "✓" : "⚠️"}
           </span>
-          <p className="text-xs font-semibold tracking-wide leading-normal">
+          <p className="text-xs font-bold tracking-wide leading-normal uppercase">
             {state.message}
           </p>
         </div>

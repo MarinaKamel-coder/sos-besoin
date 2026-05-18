@@ -45,9 +45,9 @@ export default function SearchBar({
   }, [value, delay, pathname, router]);
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full group">
       {/* Icône de recherche (Loupe) à gauche */}
-      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-purple-400 pointer-events-none transition-colors duration-200">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -70,20 +70,20 @@ export default function SearchBar({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-10 pr-10 py-2.5 bg-slate-950 text-sm text-slate-200 placeholder-slate-500 rounded-lg border border-slate-900 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 outline-none transition-all duration-150"
+        className="w-full pl-10 pr-10 py-3 bg-white/[0.02] text-sm text-slate-100 placeholder-slate-600 rounded-xl border border-white/5 focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all duration-200 font-medium"
       />
 
       {/* Indicateur d'état (Spinner ou Clear Button) à droite */}
       <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-4 h-4">
         {isPending ? (
           <svg
-            className="animate-spin text-blue-400 w-3.5 h-3.5"
+            className="animate-spin text-purple-400 w-3.5 h-3.5 shadow-[0_0_8px_rgba(168,85,247,0.3)] rounded-full"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
           >
             <circle
-              className="opacity-25"
+              className="opacity-10"
               cx="12"
               cy="12"
               r="10"
@@ -91,7 +91,7 @@ export default function SearchBar({
               strokeWidth="4"
             />
             <path
-              className="opacity-75"
+              className="opacity-90"
               fill="currentColor"
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             />
@@ -101,7 +101,7 @@ export default function SearchBar({
             <button
               onClick={() => setValue("")}
               type="button"
-              className="text-slate-500 hover:text-slate-300 transition-colors"
+              className="text-slate-500 hover:text-slate-300 transition-colors duration-150"
               aria-label="Effacer la recherche"
             >
               <svg
