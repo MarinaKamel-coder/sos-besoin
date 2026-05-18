@@ -12,6 +12,13 @@ const STATUS_LABELS: Record<string, string> = {
   WITHDRAWN: "Retirée",
 };
 
+const STATUS_STYLES: Record<string, string> = {
+  PENDING: "text-blue-400 bg-blue-500/10 border-blue-500/20",
+  ACCEPTED: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+  REJECTED: "text-rose-400 bg-rose-500/10 border-rose-500/20",
+  WITHDRAWN: "text-slate-500 bg-white/[0.02] border-white/5",
+};
+
 export default async function AdminOffersPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
@@ -31,7 +38,7 @@ export default async function AdminOffersPage() {
     include: {
       request: { 
         select: { 
-          id: true, // 👈 Ajouté ici pour corriger l'erreur de build TypeScript !
+          id: true, 
           title: true, 
           status: true 
         } 
@@ -41,66 +48,75 @@ export default async function AdminOffersPage() {
   });
 
   return (
-    <main className="mx-auto w-full max-w-6xl p-6 text-slate-100 bg-slate-950 min-h-screen space-y-6">
+    <main className="mx-auto w-full max-w-6xl p-6 text-slate-100 bg-transparent min-h-screen space-y-6">
       <AdminNav active="offers" />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
-            Gestion des offres
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Consultez les offres soumises par les prestataires et suivez leur statut.
-          </p>
-        </div>
+      {/* En-tête de section */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-black uppercase tracking-wider text-white sm:text-3xl tracking-tight">
+          Gestion des offres
+        </h1>
+        <p className="text-xs text-slate-400 font-medium">
+          Consultez les propositions financières soumises par les prestataires et surveillez l&apos;état des négociations.
+        </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-4 backdrop-blur-sm">
+      {/* Conteneur principal de la liste */}
+      <div className="cyber-card rounded-2xl p-6 border-white/5 bg-white/[0.01]">
         {offers.length === 0 ? (
-          <div className="rounded-xl border border-slate-900/60 bg-slate-950/80 p-12 text-center text-xs font-medium text-slate-500">
-            Aucune offre disponible actuellement.
+          <div className="rounded-xl border border-white/[0.03] bg-white/[0.005] p-12 text-center text-slate-500 text-xs font-medium uppercase tracking-widest">
+            Aucune proposition soumise actuellement sur le marché.
           </div>
         ) : (
           <ul className="space-y-3">
             {offers.map((offer) => (
-              <li key={offer.id} className="rounded-xl border border-slate-900 bg-slate-950/60 p-5 transition-all duration-150 hover:border-slate-800">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <li 
+                key={offer.id} 
+                className="rounded-xl border border-white/[0.03] bg-white/[0.005] p-5 hover:border-white/10 transition-all duration-200"
+              >
+                <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                   
-                  <div className="space-y-2.5 flex-1">
-                    <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
-                      <span className="rounded-md border border-slate-800 bg-slate-900/60 px-2 py-0.5 text-slate-400">
-                        {STATUS_LABELS[offer.status]}
+                  {/* Détails de la proposition (Gauche) */}
+                  <div className="space-y-3 flex-1">
+                    <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+                      <span className={`px-2 py-0.5 rounded border ${STATUS_STYLES[offer.status] ?? "text-slate-400 border-white/5 bg-white/5"}`}>
+                        {STATUS_LABELS[offer.status] ?? offer.status}
                       </span>
                     </div>
 
-                    {/* Le lien fonctionne à nouveau ! */}
-                    <Link 
-                      href={`/service-requests/${offer.request.id}`} 
-                      className="block text-base font-bold text-white hover:text-blue-400 tracking-tight transition-colors"
-                    >
-                      {offer.request.title}
-                    </Link>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Demande associée</p>
+                      <Link 
+                        href={`/service-requests/${offer.request.id}`} 
+                        className="inline-block text-base font-bold text-slate-100 hover:text-purple-400 transition-colors duration-150 leading-snug"
+                      >
+                        {offer.request.title}
+                      </Link>
+                    </div>
 
-                    <p className="text-xs font-semibold text-slate-300">
-                      Par : <span className="text-slate-400 font-normal">{offer.provider.name ?? offer.provider.email}</span>
+                    <p className="text-xs font-bold text-slate-400">
+                      Par : <span className="text-slate-300 font-medium">{offer.provider.name ?? offer.provider.email}</span>
                     </p>
                     
-                    <p className="text-xs text-slate-400 leading-relaxed max-w-2xl bg-slate-900/30 p-2.5 border border-slate-900/40 rounded-lg">
+                    <div className="rounded-xl border border-white/[0.02] bg-white/[0.01] p-3 text-xs text-slate-400 font-medium leading-relaxed max-w-3xl">
                       {offer.message}
-                    </p>
+                    </div>
                   </div>
 
-                  <div className="flex min-w-[150px] flex-col items-end justify-between gap-4 text-right self-stretch">
-                    <div>
-                      <p className="text-lg font-black text-white tracking-tight">
+                  {/* Prix / Métadonnées demande / Actions (Droite) */}
+                  <div className="flex min-w-[180px] flex-col items-start gap-4 md:items-end md:justify-between text-xs md:text-right self-stretch border-t border-white/[0.02] pt-4 md:border-none md:pt-0">
+                    <div className="space-y-1">
+                      <p className="text-2xl font-black text-white tracking-tight font-mono">
                         {(offer.price / 100).toFixed(2)} $ CAD
                       </p>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mt-1">
-                        Requête : {offer.request.status}
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                        Statut requête : <span className="text-slate-400">{offer.request.status}</span>
                       </p>
                     </div>
                     
-                    <DeleteOfferAdminButton offerId={offer.id} />
+                    <div className="w-full md:w-auto pt-1">
+                      <DeleteOfferAdminButton offerId={offer.id} />
+                    </div>
                   </div>
 
                 </div>

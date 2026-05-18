@@ -30,23 +30,24 @@ export default function PostPaymentTrigger({ bookingId, offerId }: PostPaymentTr
 
   if (status === "loading") {
     return (
-      <p className="text-xs text-amber-400 bg-amber-500/[0.02] border border-amber-500/10 rounded-lg py-1.5 px-3 inline-block animate-pulse">
-        ⚡ Mise à jour de votre panier en cours...
-      </p>
+      <div className="inline-flex items-center gap-2 rounded-xl border border-amber-500/10 bg-amber-500/[0.02] px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.03)] animate-pulse">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" />
+        <span>⚡ Synchronisation du panier...</span>
+      </div>
     );
   }
 
   if (status === "error") {
     return (
-      <p className="text-xs text-rose-400 bg-rose-500/[0.02] border border-rose-500/10 rounded-lg py-1.5 px-3 inline-block">
-        ⚠️ Erreur de synchronisation, mais votre paiement est bien validé.
-      </p>
+      <div className="inline-flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/[0.02] px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.03)]">
+        <span>⚠️ Panier non synchronisé (Paiement validé)</span>
+      </div>
     );
   }
 
   return (
-    <p className="text-xs text-emerald-400 bg-emerald-500/[0.02] border border-emerald-500/10 rounded-lg py-1.5 px-3 inline-block">
-      ✨ Panier mis à jour et vidé avec succès !
-    </p>
+    <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.02] px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.03)]">
+      <span>✨ Traitement complété avec succès !</span>
+    </div>
   );
 }

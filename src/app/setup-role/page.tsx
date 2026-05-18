@@ -22,7 +22,7 @@ function SetupRoleContent() {
         });
 
         if (!response.ok) {
-          throw new Error("Impossible de mettre à jour le rôle");
+          throw new Error("Impossible de configurer l'attribution de votre rôle.");
         }
 
         // Nettoyer le localStorage
@@ -31,7 +31,7 @@ function SetupRoleContent() {
         // Rediriger vers la home
         router.push("/");
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Une erreur est survenue");
+        setError(err instanceof Error ? err.message : "Une erreur inattendue est survenue");
         setLoading(false);
       }
     };
@@ -40,21 +40,31 @@ function SetupRoleContent() {
   }, [searchParams, router]);
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 py-32 text-center">
+    <div className="flex flex-1 flex-col items-center justify-center gap-6 py-32 text-center bg-transparent min-h-[70vh]">
       {loading && (
-        <>
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Configuration de votre profil...
+        <div className="space-y-4 flex flex-col items-center justify-center">
+          {/* Spinner Premium Neon */}
+          <div className="relative h-12 w-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-2 border-white/5 border-b-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)]"></div>
+          </div>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 max-w-xs leading-relaxed animate-pulse">
+            Synchronisation et sécurisation de votre profil...
           </p>
-        </>
+        </div>
       )}
+
       {error && (
-        <div className="rounded-lg bg-red-100 p-4 text-red-700 dark:bg-red-900/20 dark:text-red-400">
-          <p>{error}</p>
+        <div className="cyber-card rounded-2xl p-8 max-w-md mx-auto space-y-4 border-rose-500/20 bg-rose-500/[0.02] shadow-[0_0_20px_rgba(244,63,94,0.08)]">
+          <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto text-rose-400 text-lg">
+            ⚠️
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-xs font-black uppercase tracking-widest text-rose-400">Échec d'initialisation</p>
+            <p className="text-sm text-slate-300 font-medium leading-relaxed">{error}</p>
+          </div>
           <button
             onClick={() => router.push("/")}
-            className="mt-4 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+            className="w-full mt-2 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20 transition-all active:scale-[0.98]"
           >
             Retour à l'accueil
           </button>
@@ -68,9 +78,11 @@ export default function SetupRolePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 py-32 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="text-zinc-600 dark:text-zinc-400">
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 py-32 text-center bg-transparent min-h-[70vh]">
+          <div className="relative h-12 w-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-2 border-white/5 border-b-purple-500/50"></div>
+          </div>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-500 animate-pulse">
             Chargement...
           </p>
         </div>
@@ -80,4 +92,3 @@ export default function SetupRolePage() {
     </Suspense>
   );
 }
-

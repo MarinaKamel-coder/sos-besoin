@@ -1,9 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  /* Forçage du thème sombre sidéral par défaut (Slate 950) */
-  --background: #020617;
-  --foreground: #f8fafc;
+  /* Fond violet/bleu nuit ultra-profond et texte blanc givré */
+  --background: #170a3e; 
+  --foreground: #f1f5f9; /* slate-100 */
+  
+  /* Palette de couleurs de ton image de référence */
+  --cyber-purple: #6d28d9;  /* Violet vibrant */
+  --cyber-magenta: #d946ef; /* Magenta éclatant */
+  --cyber-glow: #1e1145;    /* Couleur pour les halos d'arrière-plan */
 }
 
 @theme inline {
@@ -11,28 +16,86 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  
+  /* Raccourcis pour Tailwind */
+  --color-cyber-purple: var(--cyber-purple);
+  --color-cyber-magenta: var(--cyber-magenta);
 }
 
 /* Base globale du document */
 html,
 body {
   background-color: var(--background);
+  /* Reproduction des gradients de lumière de l'image */
+  background-image: 
+    radial-gradient(at 50% 0%, rgba(109, 40, 217, 0.15) 0px, transparent 40%),
+    radial-gradient(at 100% 50%, rgba(217, 70, 239, 0.05) 0px, transparent 35%);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  min-height: 100vh;
 }
 
-/* Optimisation de la sélection de texte */
+/* Sélection de texte assortie au thème */
 ::selection {
-  background-color: rgba(59, 130, 246, 0.2); /* halo bleu très discret */
+  background-color: rgba(109, 40, 217, 0.4);
   color: #ffffff;
 }
 
-/* Lissage global des transitions de bordures et focus */
+/* Bordures par défaut discrètes style carte sombre */
 *,
 ::before,
 ::after {
-  border-color: rgba(30, 41, 59, 0.5); /* Couleur de bordure par défaut (slate-800) */
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* --- EFFETS DE GLOW ET DE GRADIENT (Inspirés de Vortasky AI) --- */
+
+/* Cartes sombres translucides avec bordure subtile */
+.cyber-card {
+  background-color: rgba(13, 8, 30, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cyber-card:hover {
+  border-color: rgba(109, 40, 217, 0.3);
+  box-shadow: 0 0 30px rgba(109, 40, 217, 0.15);
+}
+
+/* Bouton principal dégradé violet magique avec effet de lueur */
+.btn-cyber-primary {
+  background: linear-gradient(135deg, var(--cyber-purple), #4c1d95);
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(109, 40, 217, 0.25);
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-cyber-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 25px rgba(109, 40, 217, 0.4);
+  filter: brightness(1.1);
+}
+
+/* Bouton secondaire transparent à bordure blanche de l'image */
+.btn-cyber-secondary {
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-cyber-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Effet texte dégradé pour les titres importants */
+.text-cyber-gradient {
+  background: linear-gradient(135deg, #ffffff 30%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }

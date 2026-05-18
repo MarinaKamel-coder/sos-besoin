@@ -55,26 +55,28 @@ export default async function ReceivedOffersPage({
     })),
   ];
 
+  /* Configuration des badges néon de l'offre reçue */
+  const stateBadgeConfig: Record<OfferStatus, string> = {
+    PENDING: "border-amber-500/20 bg-amber-500/5 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.05)]",
+    ACCEPTED: "border-emerald-500/20 bg-emerald-500/5 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.05)]",
+    REJECTED: "border-rose-500/20 bg-rose-500/5 text-rose-400",
+    WITHDRAWN: "border-white/5 bg-white/[0.02] text-slate-400",
+  };
+
   return (
-    <main className="mx-auto min-h-screen max-w-4xl p-6 bg-slate-950 text-slate-100">
+    <main className="mx-auto min-h-screen max-w-4xl w-full p-6 text-slate-100 bg-transparent space-y-6">
       
-      {/* Header section */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-extrabold tracking-tight text-white">
+      {/* En-tête de page */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-white/5 pb-4">
+        <h1 className="text-2xl font-black text-white tracking-tight sm:text-3xl">
           Offres reçues pour mes demandes
         </h1>
-        <Link
-          href="/cart"
-          className="inline-flex justify-center items-center rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
-        >
-          🛒 Voir le panier
-        </Link>
       </div>
 
-      {/* Tabs de filtrage */}
+      {/* Navigation / Filtres par onglets */}
       <nav
         aria-label="Filtrer par statut"
-        className="mb-6 flex flex-wrap gap-2 border-b border-slate-900 pb-3"
+        className="flex flex-wrap gap-2 border-b border-white/5 pb-4"
       >
         {filterLinks.map(({ href, label }) => {
           const active =
@@ -85,11 +87,11 @@ export default async function ReceivedOffersPage({
             <Link
               key={href}
               href={href}
-              className={
+              className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 border ${
                 active
-                  ? "rounded-full bg-blue-600 px-4 py-1 text-xs font-bold text-white shadow-md shadow-blue-500/10 transition-all"
-                  : "rounded-full border border-slate-800 bg-slate-900/30 px-4 py-1 text-xs font-medium text-slate-400 hover:border-slate-700 hover:bg-slate-900/60 hover:text-slate-200 transition-all"
-              }
+                  ? "bg-purple-500/10 border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.15)]"
+                  : "border-white/5 bg-white/[0.01] text-slate-400 hover:text-white hover:border-white/10"
+              }`}
             >
               {label}
             </Link>
@@ -97,14 +99,14 @@ export default async function ReceivedOffersPage({
         })}
       </nav>
 
-      {/* Résultats info */}
-      <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
+      {/* Compteur d'éléments */}
+      <div className="text-xs font-bold uppercase tracking-widest text-slate-500">
         {meta.totalCount} résultat{meta.totalCount > 1 ? "s" : ""} — page {meta.currentPage} sur {meta.totalPages}
-      </p>
+      </div>
 
-      {/* Liste des offres */}
+      {/* Liste principale des propositions d'offres */}
       {items.length === 0 ? (
-        <div className="rounded-xl border border-slate-900 bg-slate-900/20 p-12 text-center text-sm text-slate-500 backdrop-blur-sm">
+        <div className="cyber-card rounded-2xl p-12 text-center text-sm text-slate-500 font-medium">
           Aucune offre dans cette sélection.
         </div>
       ) : (
@@ -112,48 +114,45 @@ export default async function ReceivedOffersPage({
           {items.map((offer) => (
             <li
               key={offer.id}
-              className="rounded-xl border border-slate-800/80 bg-slate-900/40 p-5 backdrop-blur-sm shadow-lg shadow-slate-950/20 hover:border-slate-800 transition-all"
+              className="cyber-card rounded-2xl p-5 transition-all group hover:border-white/10"
             >
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-lg font-bold text-white hover:text-blue-400 transition-colors">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-1">
+                  <h2 className="text-lg font-black text-white tracking-tight group-hover:text-purple-400 transition-colors">
                     <Link href={`/service-requests/${offer.request.id}`}>
                       {offer.request.title}
                     </Link>
                   </h2>
-                  <p className="mt-1 text-xs text-slate-400">
-                    Prestataire : <span className="text-slate-300 font-medium">{offer.provider.name ?? offer.provider.email}</span>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Prestataire : <span className="text-slate-300 normal-case font-medium lowercase bg-white/5 border border-white/5 px-1.5 py-0.5 rounded ml-1">{offer.provider.name ?? offer.provider.email}</span>
                   </p>
                 </div>
                 
-                {/* Badge de Statut customisé */}
-                <span className={`rounded-lg px-2.5 py-1 text-xs font-bold tracking-wide uppercase border ${
-                  offer.status === 'ACCEPTED' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                  offer.status === 'PENDING' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
-                  'bg-slate-800 border-slate-700 text-slate-400'
-                }`}>
+                {/* Badge d'état dynamique */}
+                <span className={`self-start rounded-lg border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest backdrop-blur-sm shrink-0 ${stateBadgeConfig[offer.status]}`}>
                   {STATUS_LABELS[offer.status]}
                 </span>
               </div>
 
-              <p className="mt-4 whitespace-pre-wrap text-sm text-slate-300 bg-slate-950/40 rounded-xl p-3 border border-slate-900/60">
+              {/* Message de description */}
+              <div className="mt-4 whitespace-pre-wrap text-sm text-slate-300 font-medium leading-relaxed bg-white/[0.01] border border-white/5 rounded-xl p-4 shadow-inner">
                 {offer.message}
-              </p>
+              </div>
 
-              <div className="mt-4 flex items-center justify-between pt-2 border-t border-slate-900/60">
-                <p className="text-xl font-extrabold text-blue-400 tracking-tight">
+              {/* Pied de carte : Actions et Prix */}
+              <div className="mt-4 flex items-center justify-between pt-3 border-t border-white/5">
+                <p className="text-lg font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent tracking-tight">
                   {(offer.price / 100).toFixed(2)} $
                 </p>
 
                 {offer.status === "PENDING" && (
-                  /* Utilisation sécurisée d'une Server Action via l'attribut formAction */
                   <form action={async () => {
                     "use server";
                     await addToCart(offer.id);
                   }}>
                     <button
                       type="submit"
-                      className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white hover:from-blue-500 hover:to-indigo-500 transition-all shadow-md shadow-blue-950/50 active:scale-[0.98]"
+                      className="btn-cyber-primary px-4 py-2 text-xs font-bold uppercase tracking-widest"
                     >
                       Ajouter au panier
                     </button>
@@ -165,8 +164,8 @@ export default async function ReceivedOffersPage({
         </ul>
       )}
 
-      {/* Pagination */}
-      <div className="mt-8">
+      {/* Pagination globale */}
+      <div className="pt-4">
         <Pagination
           currentPage={meta.currentPage}
           totalPages={meta.totalPages}

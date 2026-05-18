@@ -4,21 +4,21 @@ import prisma from "@/src/lib/prisma";
 import { getCursorPaginatedServiceRequests } from "@/src/lib/requetes/serviceRequests";
 import { RequestStatus } from "@/src/generated/prisma/client";
 
-// Verifie que la valeur recue est bien un RequestStatus
 function parseStatus(value?: string): RequestStatus | undefined {
     if (!value) return undefined;
     const allowed = ["OPEN", "FILLED", "CANCELLED", "HIDDEN"];
     return allowed.includes(value) ? (value as RequestStatus) : undefined;
 }
 
+const STATUS_LABELS: Record<RequestStatus, string> = {
+    OPEN: "Ouverte",
+    FILLED: "Pourvue",
+    CANCELLED: "Annulée",
+    HIDDEN: "Masquée",
+};
+
 /**
- * BONUS - Demo de la pagination par CURSEUR (cursor-based)
- *
- * URL: /service-requests/cursor?cursor=<lastId>&q=...&status=OPEN
- *
- * Difference avec /service-requests :
- *   - /service-requests          --> pagination par OFFSET (page 1, 2, 3...)
- *   - /service-requests/cursor   --> pagination par CURSEUR (Suivant uniquement)
+ * BONUS - Démo de la pagination par CURSEUR (cursor-based)
  */
 export default async function Page({
     searchParams,
@@ -55,7 +55,6 @@ export default async function Page({
         forClientId,
     });
 
-    // Construit l'URL pour la page suivante (en preservant les filtres)
     const buildNextUrl = (cursorId: string) => {
         const sp = new URLSearchParams();
         if (params.q) sp.set("q", params.q);
@@ -71,85 +70,109 @@ export default async function Page({
         return sp.toString() ? `/service-requests/cursor?${sp.toString()}` : `/service-requests/cursor`;
     };
 
+    const statusBadgeConfig: Record<RequestStatus, string> = {
+        OPEN: "border-emerald-500/20 bg-emerald-500/5 text-emerald-400",
+        FILLED: "border-purple-500/20 bg-purple-500/5 text-purple-400",
+        CANCELLED: "border-rose-500/20 bg-rose-500/5 text-rose-400",
+        HIDDEN: "border-white/5 bg-white/[0.02] text-slate-400",
+    };
+
     return (
-        <main className="p-6 max-w-5xl mx-auto">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold">
+        <main className="mx-auto w-full max-w-5xl p-6 text-slate-100 bg-transparent space-y-6">
+            
+            {/* En-tête de la page */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-white/5 pb-4">
+                <h1 className="text-2xl font-black text-white tracking-tight sm:text-3xl">
                     {forClientId
-                        ? "Mes demandes (pagination curseur)"
-                        : "Demandes urgentes (pagination par curseur)"}
+                        ? "Mes demandes (Curseur)"
+                        : "Demandes urgentes (Curseur)"}
                 </h1>
                 <Link
                     href="/service-requests"
-                    className="text-sm text-blue-600 hover:underline"
+                    className="inline-flex items-center text-xs font-bold uppercase tracking-widest text-purple-400 hover:text-purple-300 transition-colors gap-1 shrink-0"
                 >
-                    Voir la version par offset →
+                    Version offset →
                 </Link>
             </div>
 
+            {/* Bannières de rôle contextuelles */}
             {forClientId && (
-                <p className="text-sm text-gray-600 dark:text-zinc-400 mb-3 rounded border border-blue-200 bg-blue-50 px-3 py-2 dark:border-blue-800 dark:bg-blue-900/20">
-                    Liste restreinte à vos propres demandes.
-                </p>
+                <div className="text-xs font-bold uppercase tracking-wider rounded-xl border border-purple-500/20 bg-purple-500/5 px-4 py-3 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.05)]">
+                    📌 Liste restreinte à vos propres demandes créées.
+                </div>
             )}
 
             {excludeClientId && (
-                <p className="text-sm text-gray-600 dark:text-zinc-400 mb-3 rounded border border-green-200 bg-green-50 px-3 py-2 dark:border-green-800 dark:bg-green-900/20">
-                    Vue prestataire : vos propres demandes ne figurent pas dans cette liste.
-                </p>
+                <div className="text-xs font-bold uppercase tracking-wider rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.05)]">
+                    💼 Vue prestataire : vos propres demandes de service ne figurent pas ici.
+                </div>
             )}
 
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-900">
-                <strong>Mode CURSEUR.</strong> Cette page utilise{" "}
-                <code>cursor: {"{ id }"}</code> au lieu de <code>skip</code>. Pas d'acces
-                direct a une page N : uniquement « Suivant ».
+            {/* Note d'explication technique du mode Curseur */}
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 text-xs leading-relaxed text-slate-400">
+                <span className="font-black uppercase tracking-wider text-purple-400 mr-2">Mode CURSEUR.</span> 
+                Cette page utilise l'identifiant unique <code>cursor: {"{ id }"}</code> au lieu du saut d'index (<code>skip</code>). Idéal pour les flux de données infinis ou à haute fréquence. Pas d'accès direct à une page arbitraire : navigation séquentielle unique.
             </div>
 
-            <p className="text-sm text-gray-600 mb-4">
-                {items.length} resultat{items.length > 1 ? "s" : ""} affiche
-                {items.length > 1 ? "s" : ""}
+            {/* Compteur et Métadonnées */}
+            <div className="text-xs font-bold uppercase tracking-widest text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span>{items.length} résultat{items.length > 1 ? "s" : ""} affiché{items.length > 1 ? "s" : ""}</span>
                 {meta.usedCursor && (
                     <>
-                        {" "}- curseur courant : <code>{meta.usedCursor}</code>
+                        <span className="text-slate-700">•</span>
+                        <span className="normal-case font-medium text-slate-400">
+                            Curseur actuel : <code className="bg-white/5 px-1.5 py-0.5 rounded text-slate-300 ml-1 font-mono">{meta.usedCursor}</code>
+                        </span>
                     </>
                 )}
-            </p>
+            </div>
 
+            {/* Liste des demandes */}
             {items.length === 0 ? (
-                <div className="border rounded p-8 text-center text-gray-500">
-                    Aucune demande trouvee.
+                <div className="cyber-card rounded-2xl p-12 text-center text-sm text-slate-500 font-medium">
+                    Aucune demande trouvée.
                 </div>
             ) : (
-                <ul className="space-y-3">
+                <ul className="space-y-4">
                     {items.map((item) => (
-                        <li key={item.id} className="border rounded p-4 hover:bg-gray-50">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h2 className="font-semibold text-lg">
-                                        <Link
-                                            href={`/service-requests/${item.id}`}
-                                            className="hover:underline"
-                                        >
+                        <li 
+                            key={item.id} 
+                            className="cyber-card rounded-2xl p-5 flex flex-col gap-4 group transition-all hover:border-white/10"
+                        >
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="space-y-1.5 flex-1">
+                                    <h2 className="text-lg font-black text-white tracking-tight group-hover:text-purple-400 transition-colors">
+                                        <Link href={`/service-requests/${item.id}`}>
                                             {item.title}
                                         </Link>
                                     </h2>
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <p className="text-sm text-slate-300 font-medium leading-relaxed line-clamp-2">
                                         {item.description}
                                     </p>
-                                    <div className="flex gap-2 mt-2 text-xs text-gray-500">
-                                        <span>Par {item.client.name ?? item.client.email}</span>
-                                        <span>•</span>
-                                        <span>{item._count.offers} offre(s)</span>
+                                    
+                                    {/* Métadonnées de la ligne */}
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                        <span className="text-slate-400 normal-case font-medium">
+                                            Par {item.client.name ?? item.client.email}
+                                        </span>
+                                        <span className="text-slate-700">•</span>
+                                        <span className="text-purple-400/80">
+                                            {item._count.offers} offre{item._count.offers > 1 ? "s" : ""}
+                                        </span>
                                         {item.location && (
                                             <>
-                                                <span>•</span>
-                                                <span>{item.location}</span>
+                                                <span className="text-slate-700">•</span>
+                                                <span className="text-slate-400 normal-case font-medium">
+                                                    📍 {item.location}
+                                                </span>
                                             </>
                                         )}
                                     </div>
                                 </div>
-                                <span className="text-xs border rounded px-2 py-1 bg-gray-100">
-                                    {item.status}
+
+                                {/* Badge d'état de la demande */}
+                                <span className={`self-start rounded-lg border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest backdrop-blur-sm shrink-0 ${statusBadgeConfig[item.status]}`}>
+                                    {STATUS_LABELS[item.status] ?? item.status}
                                 </span>
                             </div>
                         </li>
@@ -157,28 +180,28 @@ export default async function Page({
                 </ul>
             )}
 
-            {/* Navigation par curseur */}
+            {/* Navigation par curseur directionnel */}
             <nav
                 aria-label="Pagination par curseur"
-                className="flex items-center justify-center gap-3 mt-6"
+                className="flex items-center justify-center gap-3 pt-4"
             >
                 <Link
                     href={buildResetUrl()}
-                    className="px-3 py-1 border rounded hover:bg-gray-100"
+                    className="rounded-xl border border-white/5 bg-white/[0.01] px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:border-white/10 transition-all duration-200 active:scale-95"
                 >
-                    ← Retour au debut
+                    ← Début
                 </Link>
 
                 {meta.hasMore && meta.nextCursor ? (
                     <Link
                         href={buildNextUrl(meta.nextCursor)}
-                        className="px-3 py-1 border rounded bg-blue-600 text-white hover:bg-blue-500"
+                        className="btn-cyber-primary px-5 py-2 text-xs font-bold uppercase tracking-widest"
                     >
                         Suivant →
                     </Link>
                 ) : (
-                    <span className="px-3 py-1 border rounded text-gray-400 cursor-not-allowed">
-                        Fin de la liste
+                    <span className="rounded-xl border border-white/5 bg-white/[0.01] px-5 py-2 text-xs font-bold uppercase tracking-widest text-slate-600 cursor-not-allowed select-none">
+                        Fin de liste
                     </span>
                 )}
             </nav>

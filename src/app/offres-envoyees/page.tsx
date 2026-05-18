@@ -54,15 +54,28 @@ export default async function SentOffersPage({
     })),
   ];
 
-  return (
-    <main className="mx-auto max-w-4xl p-6">
-      <h1 className="mb-6 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-        Mes offres envoyées
-      </h1>
+  /* Configuration des variations de couleurs néon pour les badges d'état de l'offre */
+  const stateBadgeConfig: Record<OfferStatus, string> = {
+    PENDING: "border-amber-500/20 bg-amber-500/5 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.05)]",
+    ACCEPTED: "border-emerald-500/20 bg-emerald-500/5 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.05)]",
+    REJECTED: "border-rose-500/20 bg-rose-500/5 text-rose-400",
+    WITHDRAWN: "border-white/5 bg-white/[0.02] text-slate-400",
+  };
 
+  return (
+    <main className="mx-auto max-w-4xl w-full p-6 text-slate-100 bg-transparent min-h-screen space-y-6">
+      
+      {/* En-tête */}
+      <div className="border-b border-white/5 pb-4">
+        <h1 className="text-2xl font-black text-white tracking-tight sm:text-3xl">
+          Mes offres envoyées
+        </h1>
+      </div>
+
+      {/* Barre de Filtres / Onglets */}
       <nav
         aria-label="Filtrer par statut"
-        className="mb-6 flex flex-wrap gap-2 border-b border-zinc-200 pb-3 dark:border-zinc-700"
+        className="flex flex-wrap gap-2 border-b border-white/5 pb-4"
       >
         {filterLinks.map(({ href, label }) => {
           const active =
@@ -73,11 +86,11 @@ export default async function SentOffersPage({
             <Link
               key={href}
               href={href}
-              className={
+              className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 border ${
                 active
-                  ? "rounded-full bg-green-600 px-3 py-1 text-sm font-medium text-white"
-                  : "rounded-full border border-zinc-300 px-3 py-1 text-sm text-zinc-700 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
-              }
+                  ? "bg-purple-500/10 border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.15)]"
+                  : "border-white/5 bg-white/[0.01] text-slate-400 hover:text-white hover:border-white/10"
+              }`}
             >
               {label}
             </Link>
@@ -85,57 +98,72 @@ export default async function SentOffersPage({
         })}
       </nav>
 
-      <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
-        {meta.totalCount} résultat{meta.totalCount > 1 ? "s" : ""} — page {meta.currentPage}{" "}
-        sur {meta.totalPages}
-      </p>
+      {/* Compteur de résultats */}
+      <div className="text-xs font-bold uppercase tracking-widest text-slate-500">
+        {meta.totalCount} résultat{meta.totalCount > 1 ? "s" : ""} — page {meta.currentPage} sur {meta.totalPages}
+      </div>
 
+      {/* Liste des Offres émanées */}
       {items.length === 0 ? (
-        <div className="rounded-xl border border-zinc-200 p-8 text-center text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-          Aucune offre dans cette sélection.
+        <div className="cyber-card rounded-2xl p-12 text-center text-sm text-slate-500 font-medium">
+          Aucune offre correspondante trouvée dans votre historique.
         </div>
       ) : (
         <ul className="space-y-4">
           {items.map((offer) => (
             <li
               key={offer.id}
-              className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900"
+              className="cyber-card rounded-2xl p-5 transition-all group hover:border-white/10"
             >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-                  <Link
-                    href={`/service-requests/${offer.request.id}`}
-                    className="hover:underline"
-                  >
-                    {offer.request.title}
-                  </Link>
-                </h2>
-                <span className="rounded border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs dark:border-zinc-600 dark:bg-zinc-800">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-1.5 flex-1">
+                  <h2 className="text-lg font-black text-white tracking-tight group-hover:text-purple-400 transition-colors">
+                    <Link href={`/service-requests/${offer.request.id}`}>
+                      {offer.request.title}
+                    </Link>
+                  </h2>
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <span>Demande parente :</span>
+                    <span className="text-slate-400 font-medium lowercase bg-white/5 border border-white/5 px-1.5 py-0.5 rounded">
+                      {offer.request.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Badge d'état de la proposition */}
+                <span className={`self-start rounded-lg border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest backdrop-blur-sm shrink-0 ${stateBadgeConfig[offer.status]}`}>
                   {STATUS_LABELS[offer.status]}
                 </span>
               </div>
-              <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-                Demande : statut {offer.request.status}
-              </p>
-              <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-700 dark:text-zinc-300">
+
+              {/* Message descriptif de l'offre */}
+              <div className="mt-4 whitespace-pre-wrap text-sm text-slate-300 font-medium leading-relaxed bg-white/[0.01] border border-white/5 rounded-xl p-4 shadow-inner">
                 {offer.message}
-              </p>
-              <p className="mt-2 font-semibold text-green-600 dark:text-green-400">
-                {(offer.price / 100).toFixed(2)} $
-              </p>
+              </div>
+
+              {/* Pied de carte avec affichage du prix */}
+              <div className="mt-4 flex items-center justify-between pt-3 border-t border-white/5">
+                <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Montant proposé</span>
+                <p className="text-lg font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent tracking-tight">
+                  {(offer.price / 100).toFixed(2)} $
+                </p>
+              </div>
             </li>
           ))}
         </ul>
       )}
 
-      <Pagination
-        currentPage={meta.currentPage}
-        totalPages={meta.totalPages}
-        basePath="/offres-envoyees"
-        extraParams={{
-          ...(offerStatus ? { offerStatus } : {}),
-        }}
-      />
+      {/* Section Pagination Bas de page */}
+      <div className="pt-4">
+        <Pagination
+          currentPage={meta.currentPage}
+          totalPages={meta.totalPages}
+          basePath="/offres-envoyees"
+          extraParams={{
+            ...(offerStatus ? { offerStatus } : {}),
+          }}
+        />
+      </div>
     </main>
   );
 }

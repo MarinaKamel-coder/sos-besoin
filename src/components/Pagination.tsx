@@ -34,33 +34,34 @@ export default function Pagination({
   const hasPrevious = currentPage > 1;
   const hasNext = currentPage < totalPages;
 
-  const baseButtonClass = "inline-flex items-center justify-center h-8 px-3 rounded-lg border text-xs font-medium transition-all duration-150 select-none";
-  const activeButtonClass = "bg-blue-500/10 text-blue-400 border-blue-500/30 font-bold";
-  const inactiveButtonClass = "bg-slate-900/40 border-slate-900 text-slate-400 hover:border-slate-800 hover:text-slate-200 hover:bg-slate-900/60";
-  const disabledButtonClass = "border-slate-900/50 text-slate-600 opacity-30 cursor-not-allowed";
+  // Alignement sur la géométrie et les styles de hauteur (h-9) du design système Premium
+  const baseButtonClass = "inline-flex items-center justify-center h-9 px-3.5 rounded-xl border text-xs font-black uppercase tracking-widest transition-all duration-200 select-none active:scale-[0.98]";
+  const activeButtonClass = "bg-purple-500/10 border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.1)] font-black";
+  const inactiveButtonClass = "bg-white/[0.01] border-white/5 text-slate-400 hover:border-purple-500/20 hover:text-purple-400 hover:bg-purple-500/[0.02]";
+  const disabledButtonClass = "border-white/[0.02] text-slate-700 opacity-20 cursor-not-allowed pointer-events-none";
 
   return (
-    <nav aria-label="Pagination" className="flex items-center justify-center gap-1.5 w-full">
+    <nav aria-label="Pagination" className="flex items-center justify-center gap-2 w-full pt-4">
       
       {/* Bouton Précédent */}
       {hasPrevious ? (
-        <Link href={buildPageUrl(currentPage - 1)} className={`${baseButtonClass} ${inactiveButtonClass} gap-1`}>
+        <Link href={buildPageUrl(currentPage - 1)} className={`${baseButtonClass} ${inactiveButtonClass} gap-1.5`}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
           </svg>
-          <span>Précédent</span>
+          <span className="hidden sm:inline">Précédent</span>
         </Link>
       ) : (
-        <span className={`${baseButtonClass} ${disabledButtonClass} gap-1`}>
+        <span className={`${baseButtonClass} ${disabledButtonClass} gap-1.5`}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
           </svg>
-          <span>Précédent</span>
+          <span className="hidden sm:inline">Précédent</span>
         </span>
       )}
 
       {/* Numéros de page défilants */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         {pageNumbers.map((page) => {
           const isActive = page === currentPage;
           return (
@@ -68,7 +69,7 @@ export default function Pagination({
               key={page}
               href={buildPageUrl(page)}
               aria-current={isActive ? "page" : undefined}
-              className={`${baseButtonClass} w-8 !px-0 ${isActive ? activeButtonClass : inactiveButtonClass}`}
+              className={`${baseButtonClass} w-9 !px-0 font-mono text-xs ${isActive ? activeButtonClass : inactiveButtonClass}`}
             >
               {page}
             </Link>
@@ -78,15 +79,15 @@ export default function Pagination({
 
       {/* Bouton Suivant */}
       {hasNext ? (
-        <Link href={buildPageUrl(currentPage + 1)} className={`${baseButtonClass} ${inactiveButtonClass} gap-1`}>
-          <span>Suivant</span>
+        <Link href={buildPageUrl(currentPage + 1)} className={`${baseButtonClass} ${inactiveButtonClass} gap-1.5`}>
+          <span className="hidden sm:inline">Suivant</span>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
             <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
           </svg>
         </Link>
       ) : (
-        <span className={`${baseButtonClass} ${disabledButtonClass} gap-1`}>
-          <span>Suivant</span>
+        <span className={`${baseButtonClass} ${disabledButtonClass} gap-1.5`}>
+          <span className="hidden sm:inline">Suivant</span>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
             <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
           </svg>

@@ -24,23 +24,25 @@ export default async function EditPage({ params }: PageProps) {
   // Guard de sécurité : Seul l'auteur ou un ADMIN peut modifier
   if (request.clientId !== user.id && user.role !== "ADMIN") {
     return (
-      <main className="mx-auto w-full max-w-2xl p-6 text-slate-100 bg-slate-950 min-h-screen flex items-center justify-center">
-        <div className="w-full rounded-2xl border border-rose-500/10 bg-rose-500/5 p-6 text-center shadow-sm space-y-4">
-          <div className="space-y-1">
-            <h1 className="text-lg font-black text-rose-400 tracking-tight flex items-center justify-center gap-2">
+      <main className="mx-auto w-full max-w-2xl p-6 text-slate-100 bg-transparent min-h-screen flex items-center justify-center">
+        <div className="cyber-card w-full rounded-2xl border-rose-500/20 bg-rose-500/5 p-8 text-center space-y-5 backdrop-blur-md shadow-[0_0_24px_rgba(244,63,94,0.05)]">
+          <div className="space-y-2">
+            <h1 className="text-xl font-black text-rose-400 tracking-tight flex items-center justify-center gap-2 uppercase tracking-widest text-sm">
               <span>🔒</span> Accès restreint
             </h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-400 font-medium leading-relaxed max-w-md mx-auto">
               Vous ne possédez pas les autorisations requises pour modifier cette demande de service.
             </p>
           </div>
           
-          <Link
-            href={`/service-requests/${id}`}
-            className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
-          >
-            ← Retour au détail
-          </Link>
+          <div className="pt-2">
+            <Link
+              href={`/service-requests/${id}`}
+              className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-white transition-colors"
+            >
+              ← Retour au détail
+            </Link>
+          </div>
         </div>
       </main>
     );
@@ -55,20 +57,20 @@ export default async function EditPage({ params }: PageProps) {
   const categoryId = request.categories[0]?.categoryId;
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-6 text-slate-100 bg-slate-950 min-h-screen space-y-6">
+    <main className="mx-auto w-full max-w-2xl p-6 text-slate-100 bg-transparent min-h-screen space-y-6">
       {/* Lien Retour */}
       <Link
         href={`/service-requests/${id}`}
-        className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-300 transition-colors"
+        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-purple-400 transition-colors"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-3 h-3">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
         </svg>
         Annuler et retourner au détail
       </Link>
 
-      {/* Formulaire injecté */}
-      <div className="bg-slate-900/10 border border-slate-900 rounded-2xl p-6 backdrop-blur-sm shadow-sm">
+      {/* Wrapper du formulaire - Laisse le RequestForm gérer sa cyber-card mais ajoute le pli global */}
+      <div className="rounded-2xl p-0.5 bg-transparent">
         <RequestForm
           categories={categories}
           initialData={{
