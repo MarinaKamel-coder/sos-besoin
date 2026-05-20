@@ -10,12 +10,14 @@ type PostPaymentTriggerProps = {
 
 export default function PostPaymentTrigger({ bookingId, offerId }: PostPaymentTriggerProps) {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [paymentId, setPaymentId] = useState<string | null>(null);
 
   useEffect(() => {
     async function initCleanup() {
       try {
         const result = await handlePostPaymentSuccess(bookingId, offerId);
         if (result.success) {
+          setPaymentId(result.paymentId ?? null);
           setStatus("success");
         } else {
           setStatus("error");
@@ -46,8 +48,22 @@ export default function PostPaymentTrigger({ bookingId, offerId }: PostPaymentTr
   }
 
   return (
-    <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.02] px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.03)]">
+    <div className="flex flex-col gap-3 items-center rounded-xl border border-emerald-500/20 bg-emerald-500/[0.02] px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.03)]">
       <span>✨ Traitement complété avec succès !</span>
+      {paymentId ? (
+        <a
+          href={`/api/invoice/${paymentId}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center justify-center rounded-lg border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-50 hover:bg-emerald-400/20 transition-all"
+        >
+          📄 Ouvrir ma facture
+        </a>
+      ) : (
+        <span className="text-[10px] text-slate-300 font-normal uppercase tracking-wide">
+          Facture en cours de génération...
+        </span>
+      )}
     </div>
   );
 }

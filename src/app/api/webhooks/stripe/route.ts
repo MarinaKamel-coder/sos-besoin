@@ -36,69 +36,115 @@ export async function POST(request: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    const { cartId } = session.metadata ?? {};
+    const metadata = session.metadata as Record<string, string> | undefined;
+    const bookingId = metadata?.bookingId;
+    const cartId = metadata?.cartId;
 
-    if (!cartId) {
-      return NextResponse.json(
-        { error: "Metadata cartId manquant" },
-        { status: 400 },
-      );
-    }
+    const paymentIntentId =
+      typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : session.payment_intent?.id ?? null;
 
     try {
-      const cartItems = await prisma.cartItem.findMany({
-        where: { cartId },
-        include: { offer: true },
-      });
-
-      const paymentIntentId =
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : (session.payment_intent?.id ?? null);
-
-      for (const item of cartItems) {
-        const subtotal = item.offer.price * item.quantity;
-        const platformFee = Math.round(subtotal * PLATFORM_FEE_RATE);
-        const amountTotal = subtotal + platformFee;
-
-        await prisma.$transaction(async (tx) => {
-          // Idempotence : éviter les doublons si Stripe renvoie l'événement
-          const existing = await tx.booking.findUnique({
-            where: { offerId: item.offerId },
+      await prisma.$transaction(async (tx) => {
+        if (bookingId) {
+          const booking = await tx.booking.findUnique({
+            where: { id: bookingId },
           });
-          if (existing) return;
 
-          await tx.booking.create({
-            data: {
-              requestId: item.offer.requestId,
-              offerId: item.offerId,
-              status: "CONFIRMED",
-              amountSubtotal: subtotal,
-              platformFee,
-              amountTotal,
-              payment: {
-                create: {
-                  status: "SUCCEEDED",
-                  stripePaymentIntentId: paymentIntentId,
-                },
+          if (booking) {
+            await tx.payment.upsert({
+              where: { bookingId },
+              create: {
+                booking: { connect: { id: bookingId } },
+                status: "SUCCEEDED",
+                stripePaymentIntentId: paymentIntentId,
               },
-            },
+              update: {
+                status: "SUCCEEDED",
+                stripePaymentIntentId: paymentIntentId,
+              },
+            });
+
+            await tx.booking.update({
+              where: { id: bookingId },
+              data: { status: "CONFIRMED" },
+            });
+
+            await tx.offer.update({
+              where: { id: booking.offerId },
+              data: { status: "ACCEPTED" },
+            });
+
+            await tx.offer.updateMany({
+              where: { requestId: booking.requestId, id: { not: booking.offerId } },
+              data: { status: "REJECTED" },
+            });
+
+            await tx.serviceRequest.update({
+              where: { id: booking.requestId },
+              data: { status: "FILLED" },
+            });
+          }
+        } else if (cartId) {
+          const cartItems = await tx.cartItem.findMany({
+            where: { cartId },
+            include: { offer: true },
           });
 
-          await tx.offer.update({
-            where: { id: item.offerId },
-            data: { status: "ACCEPTED" },
-          });
+          for (const item of cartItems) {
+            const subtotal = item.offer.price * item.quantity;
+            const platformFee = Math.round(subtotal * PLATFORM_FEE_RATE);
 
-          await tx.serviceRequest.update({
-            where: { id: item.offer.requestId },
-            data: { status: "FILLED" },
-          });
-        });
-      }
+            const booking = await tx.booking.upsert({
+              where: { offerId: item.offerId },
+              create: {
+                requestId: item.offer.requestId,
+                offerId: item.offerId,
+                status: "CONFIRMED",
+                amountSubtotal: subtotal,
+                platformFee,
+                amountTotal: subtotal + platformFee,
+              },
+              update: {
+                status: "CONFIRMED",
+              },
+            });
 
-      // Vider le panier
-      await prisma.cartItem.deleteMany({ where: { cartId } });
+            await tx.payment.upsert({
+              where: { bookingId: booking.id },
+              create: {
+                booking: { connect: { id: booking.id } },
+                status: "SUCCEEDED",
+                stripePaymentIntentId: paymentIntentId,
+              },
+              update: {
+                status: "SUCCEEDED",
+                stripePaymentIntentId: paymentIntentId,
+              },
+            });
+
+            await tx.offer.update({
+              where: { id: item.offerId },
+              data: { status: "ACCEPTED" },
+            });
+
+            await tx.offer.updateMany({
+              where: { requestId: item.offer.requestId, id: { not: item.offerId } },
+              data: { status: "REJECTED" },
+            });
+
+            await tx.serviceRequest.update({
+              where: { id: item.offer.requestId },
+              data: { status: "FILLED" },
+            });
+          }
+        }
+
+        if (cartId) {
+          await tx.cartItem.deleteMany({ where: { cartId } });
+        }
+      });
 
       revalidatePath("/cart");
       revalidatePath("/service-requests");
