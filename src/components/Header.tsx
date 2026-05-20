@@ -90,7 +90,7 @@ export default async function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/5 bg-[#060212]/60 backdrop-blur-xl shadow-sm transition-all">
+    <header id="global-header" className="sticky top-0 z-50 border-b border-white/5 bg-[#060212]/60 backdrop-blur-xl shadow-sm transition-all">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         
         {/* Logo avec le dégradé Cyber de l'image */}
@@ -136,6 +136,15 @@ export default async function Header() {
             </Link>
           )}
 
+          {userId && (
+            <Link
+              href="/api/dashboard/payments"
+              className="rounded-xl px-3 py-2 hover:bg-white/5 hover:text-slate-100 transition-all duration-200"
+            >
+              {userRole === "ADMIN" ? "Transactions" : "Historique"}
+            </Link>
+          )}
+
           {userRole === "ADMIN" && (
             <Link
               href="/admin"
@@ -145,7 +154,7 @@ export default async function Header() {
             </Link>
           )}
 
-          {userId && <CartCount />}
+          {userId && userRole !== "PROVIDER" && <CartCount />}
           
           {process.env.NODE_ENV === "development" && (
             <Link

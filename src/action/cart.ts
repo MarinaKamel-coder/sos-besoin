@@ -83,9 +83,12 @@ export async function getCart() {
       return { items: [], subtotal: 0, platformFee: 0, total: 0, itemCount: 0 };
     }
 
-    const validItems = (cart.items as CartItemWithDetails[]).filter(
-      (item) => !item.offer.booking,
-    );
+    const validItems = (cart.items as CartItemWithDetails[]).filter((item) => {
+      return (
+        !item.offer.booking ||
+        item.offer.booking.status === "PENDING_PAYMENT"
+      );
+    });
     const { subtotal, platformFee, total } = calculateTotals(validItems);
     const itemCount = validItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -300,8 +303,26 @@ export async function handlePostPaymentSuccess(bookingId: string, offerId: strin
   try {
     const currentUser = await getCurrentDbUser();
 
-    await prisma.$transaction(async (tx) => {
-      // 1. Confirmer définitivement la réservation
+    const payment = await prisma.$transaction(async (tx) => {
+      const booking = await tx.booking.findUnique({ where: { id: bookingId } });
+      if (!booking) {
+        throw new Error("Réservation introuvable");
+      }
+      if (booking.offerId !== offerId) {
+        throw new Error("Identifiant d'offre invalide pour cette réservation");
+      }
+
+      const paymentRecord = await tx.payment.upsert({
+        where: { bookingId },
+        create: {
+          booking: { connect: { id: bookingId } },
+          status: "SUCCEEDED",
+        },
+        update: {
+          status: "SUCCEEDED",
+        },
+      });
+
       await tx.booking.update({
         where: { id: bookingId },
         data: { status: "CONFIRMED" },
@@ -335,6 +356,8 @@ export async function handlePostPaymentSuccess(bookingId: string, offerId: strin
           where: { cartId: cart.id },
         });
       }
+
+      return paymentRecord;
     });
 
     // On force Next.js à recalculer le layout, le header (CartCount) et le panier
@@ -342,7 +365,7 @@ export async function handlePostPaymentSuccess(bookingId: string, offerId: strin
     revalidatePath("/cart");
     revalidatePath("/service-requests");
 
-    return { success: true };
+    return { success: true, paymentId: payment.id };
   } catch (error) {
     console.error("[POST_PAYMENT_SUCCESS_ERROR]", error);
     return { success: false, message: "Erreur lors de la mise à jour post-paiement." };
