@@ -2,7 +2,7 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import prisma from "@/src/lib/prisma";
-import { getPaginatedProviderOffers, ProviderOfferView } from "@/src/lib/requetes/offersList";
+import { getPaginatedProviderOffers } from "@/src/lib/requetes/offersList";
 import Pagination from "@/src/components/Pagination";
 import { OfferStatus } from "@/src/generated/prisma/client";
 
@@ -10,11 +10,6 @@ function parseOfferStatus(value?: string): OfferStatus | undefined {
   if (!value) return undefined;
   const allowed: OfferStatus[] = ["PENDING", "ACCEPTED", "REJECTED", "WITHDRAWN"];
   return allowed.includes(value as OfferStatus) ? (value as OfferStatus) : undefined;
-}
-
-function parseOfferView(value?: string): ProviderOfferView {
-  const allowed: ProviderOfferView[] = ["sent", "received", "all"];
-  return allowed.includes(value as ProviderOfferView) ? (value as ProviderOfferView) : "sent";
 }
 
 const STATUS_LABELS: Record<OfferStatus, string> = {
@@ -25,13 +20,6 @@ const STATUS_LABELS: Record<OfferStatus, string> = {
 };
 
 const OFFER_STATUS_TABS = ["PENDING", "ACCEPTED", "REJECTED", "WITHDRAWN"] as const;
-const OFFER_VIEW_TABS = [
-  { view: "sent", label: "Envoyées" },
-  { view: "received", label: "Reçues" },
-  { view: "all", label: "Toutes" },
-] as const;
-
-type OfferViewTab = (typeof OFFER_VIEW_TABS)[number]["view"];
 
 export default async function SentOffersPage({
   searchParams,
@@ -50,29 +38,15 @@ export default async function SentOffersPage({
 
   const params = await searchParams;
   const page = Number(params.page ?? 1);
-  const offerStatus = parseOfferStatus(params.offerStatus);
-  const offerView = parseOfferView(params.view);
+  const currentStatus = parseOfferStatus(params.offerStatus);
 
+  // Récupération des données filtrées par le statut sélectionné
   const { items, meta } = await getPaginatedProviderOffers({
     providerUserId: dbUser.id,
     page,
-    offerStatus,
-    view: offerView,
+    offerStatus: currentStatus,
+    view: "sent",
   });
-
-  const viewLinks: { href: string; label: string; view: OfferViewTab }[] = OFFER_VIEW_TABS.map((item) => ({
-    href: `/offres-envoyees?view=${item.view}${offerStatus ? `&offerStatus=${offerStatus}` : ""}`,
-    label: item.label,
-    view: item.view,
-  }));
-
-  const filterLinks: { href: string; label: string }[] = [
-    { href: `/offres-envoyees?view=${offerView}`, label: "Toutes" },
-    ...OFFER_STATUS_TABS.map((s) => ({
-      href: `/offres-envoyees?view=${offerView}&offerStatus=${s}`,
-      label: STATUS_LABELS[s],
-    })),
-  ];
 
   /* Configuration des variations de couleurs néon pour les badges d'état de l'offre */
   const stateBadgeConfig: Record<OfferStatus, string> = {
@@ -83,73 +57,51 @@ export default async function SentOffersPage({
   };
 
   return (
-    <main className="mx-auto max-w-4xl w-full p-6 text-slate-100 bg-transparent min-h-screen space-y-6">
+    <main className="mx-auto max-w-4xl w-full p-6 text-slate-100 bg-transparent min-h-screen space-y-6 relative">
       
       {/* En-tête */}
-      <div className="border-b border-white/5 pb-4">
+      <div className="border-b border-white/5 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-black text-white tracking-tight sm:text-3xl">
-          Mes offres
+          Mes offres envoyées
         </h1>
+        
+        {/* Compteur de résultats intégré à l'en-tête */}
+        <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest bg-white/[0.03] border border-white/[0.06] inline-block px-2.5 py-1 rounded-md self-start sm:self-auto">
+          {meta.totalCount} résultat{meta.totalCount > 1 ? "s" : ""} · Page {meta.currentPage} sur {meta.totalPages}
+        </div>
       </div>
 
-      {/* Barre de mode d'affichage */}
-      <nav
-        aria-label="Afficher les offres"
-        className="flex flex-wrap gap-2 border-b border-white/5 pb-4"
-      >
-        {viewLinks.map(({ href, label, view }) => {
-          const active = offerView === view;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 border ${
-                active
-                  ? "bg-purple-500/10 border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.15)]"
-                  : "border-white/5 bg-white/[0.01] text-slate-400 hover:text-white hover:border-white/10"
-              }`}
-            >
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Barre de Filtres / Onglets statut */}
-      <nav
-        aria-label="Filtrer par statut"
-        className="flex flex-wrap gap-2 border-b border-white/5 pb-4"
-      >
-        {filterLinks.map(({ href, label }) => {
-          const active =
-            href === `/offres-envoyees?view=${offerView}`
-              ? !offerStatus
-              : offerStatus !== undefined && href.endsWith(offerStatus);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 border ${
-                active
-                  ? "bg-purple-500/10 border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.15)]"
-                  : "border-white/5 bg-white/[0.01] text-slate-400 hover:text-white hover:border-white/10"
-              }`}
-            >
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Compteur de résultats */}
-      <div className="text-xs font-bold uppercase tracking-widest text-slate-500">
-        {meta.totalCount} résultat{meta.totalCount > 1 ? "s" : ""} — page {meta.currentPage} sur {meta.totalPages}
+      {/* Barre d'onglets de filtrage par statut (Cyber Filter Tabs) */}
+      <div className="flex flex-wrap gap-2 border-b border-white/5 pb-2">
+        <Link
+          href="/offres-envoyees"
+          className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border transition-all duration-200 ${
+            !currentStatus
+              ? "border-purple-500/40 bg-purple-500/10 text-purple-300 shadow-[0_0_15px_rgba(112,0,255,0.15)]"
+              : "border-transparent bg-transparent text-slate-400 hover:text-white"
+          }`}
+        >
+          🔑 Toutes
+        </Link>
+        {OFFER_STATUS_TABS.map((status) => (
+          <Link
+            key={status}
+            href={`/offres-envoyees?offerStatus=${status}`}
+            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border transition-all duration-200 ${
+              currentStatus === status
+                ? "border-purple-500/40 bg-purple-500/10 text-purple-300 shadow-[0_0_15px_rgba(112,0,255,0.15)]"
+                : "border-transparent bg-transparent text-slate-400 hover:text-white"
+            }`}
+          >
+            {STATUS_LABELS[status]}
+          </Link>
+        ))}
       </div>
 
       {/* Liste des Offres */}
       {items.length === 0 ? (
-        <div className="cyber-card rounded-2xl p-12 text-center text-sm text-slate-500 font-medium">
-          Aucune offre correspondante trouvée dans votre historique.
+        <div className="bg-[#0c0a15]/30 border border-white/[0.04] rounded-3xl p-16 text-center text-[10px] font-black uppercase tracking-widest text-slate-500 backdrop-blur-xl">
+          Aucune offre correspondante trouvée dans cette catégorie.
         </div>
       ) : (
         <ul className="space-y-4">
@@ -158,7 +110,7 @@ export default async function SentOffersPage({
             return (
               <li
                 key={offer.id}
-                className="cyber-card rounded-2xl p-5 transition-all group hover:border-white/10"
+                className="group rounded-2xl p-5 border border-white/[0.04] bg-[#0c0a15]/30 hover:border-white/[0.12] hover:bg-[#120f22]/50 transition-all duration-300 backdrop-blur-md shadow-lg hover:shadow-[0_10px_30px_rgba(0,0,0,0.3)] hover:-translate-y-0.5"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1.5 flex-1">
@@ -167,7 +119,7 @@ export default async function SentOffersPage({
                         {isReceivedOffer ? "Offre reçue" : "Offre envoyée"}
                       </span>
                     </div>
-                    <h2 className="text-lg font-black text-white tracking-tight group-hover:text-purple-400 transition-colors">
+                    <h2 className="text-lg font-black text-white tracking-tight group-hover:text-[#ff00e5] transition-colors duration-200">
                       <Link href={`/service-requests/${offer.request.id}`}>
                         {offer.request.title}
                       </Link>
@@ -211,15 +163,13 @@ export default async function SentOffersPage({
         </ul>
       )}
 
-      {/* Section Pagination Bas de page */}
-      <div className="pt-4">
+      {/* Section Pagination avec transmission de l'état actuel */}
+      <div className="pt-6 border-t border-white/[0.04]">
         <Pagination
           currentPage={meta.currentPage}
           totalPages={meta.totalPages}
           basePath="/offres-envoyees"
-          extraParams={{
-            ...(offerStatus ? { offerStatus } : {}),
-          }}
+          extraParams={{ offerStatus: currentStatus }}
         />
       </div>
     </main>

@@ -44,15 +44,11 @@ export async function createRequestAction(
   const dbUser = await prisma.user.findUnique({ where: { clerkId } });
   if (!dbUser) return { success: false, message: "Utilisateur introuvable." };
 
-  // CLIENT, PRESTATAIRE (peut aussi publier une demande) ou ADMIN
-  if (
-    dbUser.role !== "CLIENT" &&
-    dbUser.role !== "PROVIDER" &&
-    dbUser.role !== "ADMIN"
-  ) {
+  // Seuls CLIENT et ADMIN peuvent créer des demandes
+  if (dbUser.role !== "CLIENT" && dbUser.role !== "ADMIN") {
     return {
       success: false,
-      message: "Vous ne pouvez pas créer de demande avec ce profil.",
+      message: "Les prestataires ne peuvent pas créer de demandes. Consultez les demandes disponibles pour faire des offres.",
     };
   }
 
