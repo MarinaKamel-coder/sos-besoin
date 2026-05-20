@@ -51,9 +51,7 @@ export default async function AdminDashboard() {
         <p className="text-xs text-slate-400 font-medium">
           Supervisez l&apos;activité globale, auditez les logs et ajustez les rôles d&apos;accès de la plateforme.
         </p>
-      </div>
-
-      <AdminNav active="dashboard" />
+      </div>  
 
       {/* Grille des KPIs (Indicateurs clés de performance) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -75,30 +73,6 @@ export default async function AdminDashboard() {
 
       </div>
 
-      {/* Section de gestion rapide */}
-      <div className="cyber-card rounded-2xl p-6 border-white/5 bg-white/[0.01]">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-0.5">
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">
-              Accès rapide aux outils de modération
-            </h2>
-            <p className="text-xs text-slate-500 font-medium leading-relaxed">
-              Supervisez et nettoyez les contenus du marché sans avoir besoin de publier une demande ou une offre.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/admin" className="px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5 bg-white/[0.02] text-slate-300 hover:bg-white/[0.06] transition-all active:scale-[0.98]">
-              Dashboard membres
-            </Link>
-            <Link href="/admin/service-requests" className="px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-500/20 bg-blue-500/5 text-blue-400 hover:bg-blue-500/10 transition-all active:scale-[0.98]">
-              Gérer les demandes
-            </Link>
-            <Link href="/admin/offers" className="px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-purple-500/20 bg-purple-500/5 text-purple-400 hover:bg-purple-500/10 transition-all active:scale-[0.98]">
-              Gérer les offres
-            </Link>
-          </div>
-        </div>
-      </div>
 
       {/* Section Tableau des utilisateurs */}
       <div className="cyber-card rounded-2xl p-6 border-white/5 bg-white/[0.01] space-y-6">

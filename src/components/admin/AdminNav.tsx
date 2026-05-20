@@ -1,13 +1,14 @@
 import Link from "next/link";
 
 type AdminNavProps = {
-  active: "dashboard" | "requests" | "offers";
+  active: "dashboard" | "requests" | "offers" | "transactions";
 };
 
 const navLinks: Array<{ label: string; href: string; key: AdminNavProps["active"] }> = [
   { label: "Dashboard admin", href: "/admin", key: "dashboard" },
   { label: "Gérer les demandes", href: "/admin/service-requests", key: "requests" },
   { label: "Gérer les offres", href: "/admin/offers", key: "offers" },
+  { label: "Transactions", href: "/api/dashboard/payments", key: "transactions" },
 ];
 
 export default function AdminNav({ active }: AdminNavProps) {
